@@ -119,7 +119,8 @@ int CEsattoController::haltFocuser()
     // char szTmpBuf[SERIAL_BUFFER_SIZE];
 	json jCmd;
 	json jResp;
-	if(!m_bIsConnected)
+
+    if(!m_bIsConnected)
 		return ERR_COMMNOLINK;
 
 	jCmd = {"req",{"cmd",{"MOT1" , {"MOT_ABORT",""}}}};
@@ -134,12 +135,16 @@ int CEsattoController::haltFocuser()
 		else
 			return ERR_CMDFAILED;
 	}
-	catch (json::type_error& e) {
-
-	}
-	catch (json::out_of_range& e) {
-
-	}
+    catch (json::exception& e) {
+        #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+            ltime = time(NULL);
+            timestamp = asctime(localtime(&ltime));
+            timestamp[strlen(timestamp) - 1] = 0;
+            fprintf(Logfile, "[%s] [CEsattoController::haltFocuser] json exception : %s - %d\n", timestamp, e.what(), e.id);
+            fflush(Logfile);
+        #endif
+        return ERR_CMDFAILED;
+    }
 
     return nErr;
 }
@@ -180,12 +185,16 @@ int CEsattoController::gotoPosition(int nPos)
 			return ERR_CMDFAILED;
 		}
 	}
-	catch (json::type_error& e) {
-
-	}
-	catch (json::out_of_range& e) {
-
-	}
+    catch (json::exception& e) {
+        #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+            ltime = time(NULL);
+            timestamp = asctime(localtime(&ltime));
+            timestamp[strlen(timestamp) - 1] = 0;
+            fprintf(Logfile, "[%s] [CEsattoController::gotoPosition] json exception : %s - %d\n", timestamp, e.what(), e.id);
+            fflush(Logfile);
+        #endif
+        return ERR_CMDFAILED;
+    }
 
     return nErr;
 }
@@ -258,12 +267,16 @@ int CEsattoController::getDeviceStatus()
 		m_nMinPos = jResp.at("res").at("get").at("MOT1").at("CAL_MINPOS").get<int>();
 		m_bMoving = (jResp.at("res").at("get").at("MOT1").at("STATUS").at("MST").get<std::string>() == "stop");
 	}
-	catch (json::type_error& e) {
-
-	}
-	catch (json::out_of_range& e) {
-
-	}
+    catch (json::exception& e) {
+        #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+            ltime = time(NULL);
+            timestamp = asctime(localtime(&ltime));
+            timestamp[strlen(timestamp) - 1] = 0;
+            fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] json exception : %s - %d\n", timestamp, e.what(), e.id);
+            fflush(Logfile);
+        #endif
+        return ERR_CMDFAILED;
+    }
 	return nErr;
 }
 
@@ -293,13 +306,16 @@ int CEsattoController::getFirmwareVersion(char *pszVersion, int nStrMaxLen)
 		m_sAppVer = jResp.at("res").at("get").at("SWVERS").at("SWAPP").get<std::string>();
 		m_sWebVer = jResp.at("res").at("get").at("SWVERS").at("SWWEB").get<std::string>();
 	}
-	catch (json::type_error& e) {
-
-	}
-	catch (json::out_of_range& e) {
-
-	}
-
+    catch (json::exception& e) {
+        #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+            ltime = time(NULL);
+            timestamp = asctime(localtime(&ltime));
+            timestamp[strlen(timestamp) - 1] = 0;
+            fprintf(Logfile, "[%s] [CEsattoController::getFirmwareVersion] json exception : %s - %d\n", timestamp, e.what(), e.id);
+            fflush(Logfile);
+        #endif
+        return ERR_CMDFAILED;
+    }
 
     strncpy(pszVersion, (m_sAppVer + " " + m_sWebVer).c_str(), nStrMaxLen);
 #ifdef PLUGIN_DEBUG
@@ -341,13 +357,18 @@ int CEsattoController::getModelName(char *pszModelName, int nStrMaxLen)
 		jResp = json::parse(szResp);
 		m_sModelName = jResp.at("res").at("get").at("MODNAME").get<std::string>();
 	}
-	catch (json::type_error& e) {
+    catch (json::exception& e) {
+        #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+            ltime = time(NULL);
+            timestamp = asctime(localtime(&ltime));
+            timestamp[strlen(timestamp) - 1] = 0;
+            fprintf(Logfile, "[%s] [CEsattoController::getModelName] json exception : %s - %d\n", timestamp, e.what(), e.id);
+            fflush(Logfile);
+        #endif
+        return ERR_CMDFAILED;
+    }
 
-	}
-	catch (json::out_of_range& e) {
-
-	}
-	strncpy(pszModelName, m_sModelName.c_str(), nStrMaxLen);
+    strncpy(pszModelName, m_sModelName.c_str(), nStrMaxLen);
 	return nErr;
 }
 
@@ -373,12 +394,16 @@ int CEsattoController::getTemperature(double &dTemperature)
 		jResp = json::parse(szResp);
 		dTemperature = jResp.at("res").at("get").at("EXT_T").get<double>();
 	}
-	catch (json::type_error& e) {
-
-	}
-	catch (json::out_of_range& e) {
-
-	}
+    catch (json::exception& e) {
+        #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+            ltime = time(NULL);
+            timestamp = asctime(localtime(&ltime));
+            timestamp[strlen(timestamp) - 1] = 0;
+            fprintf(Logfile, "[%s] [CEsattoController::getTemperature] json exception : %s - %d\n", timestamp, e.what(), e.id);
+            fflush(Logfile);
+        #endif
+        return ERR_CMDFAILED;
+    }
 
 	return nErr;
 }
