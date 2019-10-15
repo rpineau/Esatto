@@ -3,7 +3,7 @@
 mkdir -p ROOT/tmp/Esatto_X2/
 cp "../Esatto.ui" ROOT/tmp/Esatto_X2/
 cp "../PrimaLuceLab.png" ROOT/tmp/Esatto_X2/
-cp "../domelist Esatto.txt" ROOT/tmp/Esatto_X2/
+cp "../focuserlist Esatto.txt" ROOT/tmp/Esatto_X2/
 cp "../build/Release/libEsatto.dylib" ROOT/tmp/Esatto_X2/
 
 PACKAGE_NAME="Esatto_X2.pkg"

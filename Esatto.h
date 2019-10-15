@@ -50,6 +50,8 @@ using json = nlohmann::json;
 #endif
 #endif
 
+#define DRIVER_VERSION      1.0
+
 
 #define SERIAL_BUFFER_SIZE 256
 #define MAX_TIMEOUT 1000
@@ -116,6 +118,7 @@ protected:
 	std::string		m_sModelName;
 
 #ifdef PLUGIN_DEBUG
+	std::string m_sLogfilePath;
 	// timestamp for logs
 	char *timestamp;
 	time_t ltime;

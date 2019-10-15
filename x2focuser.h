@@ -22,7 +22,6 @@ class MutexInterface;
 class BasicIniUtilInterface;
 class TickCountInterface;
 
-#define DRIVER_VERSION      1.0
 
 #define PARENT_KEY			"Esatto"
 #define CHILD_KEY_PORTNAME	"PortName"

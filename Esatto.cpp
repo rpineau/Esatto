@@ -25,12 +25,27 @@ CEsattoController::CEsattoController()
 	m_sWebVer.clear();
 	m_sModelName.clear();
 
-#ifdef	PLUGIN_DEBUG
-	Logfile = fopen(PLUGIN_LOGFILENAME, "w");
+#ifdef PLUGIN_DEBUG
+#if defined(SB_WIN_BUILD)
+	m_sLogfilePath = getenv("HOMEDRIVE");
+	m_sLogfilePath += getenv("HOMEPATH");
+	m_sLogfilePath += "\\EsattoLog.txt";
+#elif defined(SB_LINUX_BUILD)
+	m_sLogfilePath = getenv("HOME");
+	m_sLogfilePath += "/EsattoLog.txt";
+#elif defined(SB_MAC_BUILD)
+	m_sLogfilePath = getenv("HOME");
+	m_sLogfilePath += "/EsattoLog.txt";
+#endif
+	Logfile = fopen(m_sLogfilePath.c_str(), "w");
+#endif
+
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
 	ltime = time(NULL);
-	char *timestamp = asctime(localtime(&ltime));
+	timestamp = asctime(localtime(&ltime));
 	timestamp[strlen(timestamp) - 1] = 0;
-	fprintf(Logfile, "[%s] CEsattoController Constructor Called.\n", timestamp);
+	fprintf(Logfile, "[%s] [CEsattoController::CEsattoController] Version %3.2f build 2019_10_15_0925.\n", timestamp, DRIVER_VERSION);
+	fprintf(Logfile, "[%s] [CEsattoController] Constructor Called.\n", timestamp);
 	fflush(Logfile);
 #endif
 
