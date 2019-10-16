@@ -139,7 +139,7 @@ int CEsattoController::haltFocuser()
 		return ERR_COMMNOLINK;
 
 	jCmd = {"req",{"cmd",{"MOT1" , {"MOT_ABORT",""}}}};
-	nErr = ctrlCommand(jCmd.dump().c_str(), szResp, SERIAL_BUFFER_SIZE);
+	nErr = ctrlCommand(jCmd.dump(), szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
         return nErr;
 	// parse output
@@ -454,21 +454,45 @@ int CEsattoController::syncMotorPosition(int nPos)
     int nErr = PLUGIN_OK;
     char szCmd[SERIAL_BUFFER_SIZE];
     char szResp[SERIAL_BUFFER_SIZE];
+	json jCmd;
+	json jResp;
 
 	if(!m_bIsConnected)
 		return ERR_COMMNOLINK;
 
-    snprintf(szCmd, SERIAL_BUFFER_SIZE, "I%d#", nPos);
+	jCmd = {"req",{"set",{"MOT1",{"ABS_POS", nPos}}}};
     printf("setting new pos to %d [ %s ]\n",nPos, szCmd);
     
-    nErr = ctrlCommand(szCmd, szResp, SERIAL_BUFFER_SIZE);
-    printf("[syncMotorPosition] szResp = %s\n", szResp);
-    if(nErr)
-        return nErr;
+	nErr = ctrlCommand(jCmd.dump(), szResp, SERIAL_BUFFER_SIZE);
+	if(nErr)
+		return nErr;
+	// parse output
+	// parse output
+	try {
+		jResp = json::parse(szResp);
+		if(jResp.at("res").at("set").at("MOT1").at("ABS_POS") != "done")
+			return ERR_CMDFAILED;
 
-    if(!strstr(szResp,"OK"))
-        nErr = ERR_CMDFAILED;
-    m_nCurPos = nPos;
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+		ltime = time(NULL);
+		timestamp = asctime(localtime(&ltime));
+		timestamp[strlen(timestamp) - 1] = 0;
+		fprintf(Logfile, "[%s] [CEsattoController::getTemperature] response : %s\n", timestamp, szResp);
+		fflush(Logfile);
+#endif
+	}
+	catch (json::exception& e) {
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+		ltime = time(NULL);
+		timestamp = asctime(localtime(&ltime));
+		timestamp[strlen(timestamp) - 1] = 0;
+		fprintf(Logfile, "[%s] [CEsattoController::getTemperature] json exception : %s - %d\n", timestamp, e.what(), e.id);
+		fflush(Logfile);
+#endif
+		return ERR_CMDFAILED;
+	}
+
+	m_nCurPos = nPos;
     return nErr;
 }
 
