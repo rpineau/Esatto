@@ -467,7 +467,6 @@ int CEsattoController::syncMotorPosition(int nPos)
 	if(nErr)
 		return nErr;
 	// parse output
-	// parse output
 	try {
 		jResp = json::parse(szResp);
 		if(jResp.at("res").at("set").at("MOT1").at("ABS_POS") != "done")
