@@ -231,7 +231,7 @@ int	X2Focuser::execModalSettingsDialog(void)
         if(nErr)
             return nErr;
         dx->setEnabled("newPos", true);
-        dx->setEnabled("pushButtonSet2", true);
+        dx->setEnabled("pushButton", true);
         dx->setPropertyInt("newPos", "value", nPosition);
         nErr = m_Esatto.getWiFiConfig(nWiFiMode, sSSID, sPWD);
         if(!nErr) {
@@ -244,19 +244,12 @@ int	X2Focuser::execModalSettingsDialog(void)
         // disable all controls
         dx->setEnabled("newPos", false);
         dx->setPropertyInt("newPos", "value", 0);
-        dx->setEnabled("reverseDir", false);
-        dx->setEnabled("pushButtonSet2", false);
+        dx->setEnabled("pushButton", false);
         dx->setEnabled("comboBox", false);
         dx->setEnabled("sSSID", false);
         dx->setEnabled("sPWD", false);
         dx->setEnabled("pushButton_2", false);
     }
-
-	// limit is done in software so it's always enabled.
-	dx->setEnabled("posLimit", true);
-	dx->setEnabled("limitEnable", true);
-	m_Esatto.getPosLimit(nMinPos, nMaxPos);
-	dx->setPropertyInt("posLimit", "value", nMaxPos); // need to fix as we have min and max
 
     //Display the user interface
     mUiEnabled = true;
