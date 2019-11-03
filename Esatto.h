@@ -94,6 +94,9 @@ public:
     int         syncMotorPosition(int nPos);
     int         getPosLimit(int &nMax, int &nMin);
 
+    int         getWiFiConfig(int &nMode, std::string &sSSID, std::string &sPWD);
+    int         setWiFiConfig(int nMode, std::string sSSID, std::string sPWD);
+
 protected:
 
 	int             ctrlCommand(const std::string sCmd, char *pszResult, int nResultMaxLen);

@@ -210,7 +210,10 @@ int	X2Focuser::execModalSettingsDialog(void)
 	int nMinPos = 0;
 	int nPosition = 0;
     mUiEnabled = false;
-
+    int nWiFiMode;
+    std::string sSSID;
+    std::string sPWD;
+    
     if (NULL == ui)
         return ERR_POINTER;
 
@@ -230,6 +233,12 @@ int	X2Focuser::execModalSettingsDialog(void)
         dx->setEnabled("newPos", true);
         dx->setEnabled("pushButtonSet2", true);
         dx->setPropertyInt("newPos", "value", nPosition);
+        nErr = m_Esatto.getWiFiConfig(nWiFiMode, sSSID, sPWD);
+        if(!nErr) {
+            dx->setCurrentIndex("comboBox", nWiFiMode);
+            dx->setText("sSSID", sSSID.c_str());
+            dx->setText("sPWD", sPWD.c_str());
+        }
     }
     else {
         // disable all controls
@@ -237,6 +246,10 @@ int	X2Focuser::execModalSettingsDialog(void)
         dx->setPropertyInt("newPos", "value", 0);
         dx->setEnabled("reverseDir", false);
         dx->setEnabled("pushButtonSet2", false);
+        dx->setEnabled("comboBox", false);
+        dx->setEnabled("sSSID", false);
+        dx->setEnabled("sPWD", false);
+        dx->setEnabled("pushButton_2", false);
     }
 
 	// limit is done in software so it's always enabled.
@@ -251,7 +264,7 @@ int	X2Focuser::execModalSettingsDialog(void)
         return nErr;
     mUiEnabled = false;
 
-    //Retreive values from the user interface
+    //Retrieve values from the user interface
     if (bPressedOK) {
         nErr = SB_OK;
         // get limit option
@@ -274,6 +287,22 @@ void X2Focuser::uiEvent(X2GUIExchangeInterface* uiex, const char* pszEvent)
         if(nErr) {
             snprintf(szErrorMessage, LOG_BUFFER_SIZE, "Error setting new position : Error %d", nErr);
             uiex->messageBox("Set New Position", szErrorMessage);
+            return;
+        }
+    } else if (!strcmp(pszEvent, "on_pushButton_2_clicked")) {
+        std::string sSSID;
+        std::string sPWD;
+        int nWifiMode;
+        char dummy[256];
+        uiex->text("sSSID", dummy, 256);
+        sSSID.assign(dummy);
+        uiex->text("sPWD", dummy, 256);
+        sPWD.assign(dummy);
+        nWifiMode = uiex->currentIndex("comboBox");
+        nErr = m_Esatto.setWiFiConfig(nWifiMode, sSSID, sPWD);
+        if(nErr){
+            snprintf(szErrorMessage, LOG_BUFFER_SIZE, "Error setting new WiFi parameters : Error %d", nErr);
+            uiex->messageBox("Set WiFi Configuration", szErrorMessage);
             return;
         }
     }

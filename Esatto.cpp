@@ -449,6 +449,87 @@ int CEsattoController::getPosition(int &nPosition)
 	return nErr;
 }
 
+
+int CEsattoController::getWiFiConfig(int &nMode, std::string &sSSID, std::string &sPWD)
+{
+    int nErr = PLUGIN_OK;
+    char szResp[SERIAL_BUFFER_SIZE];
+    json jCmd;
+    json jResp;
+
+
+    if(!m_bIsConnected)
+        return ERR_COMMNOLINK;
+
+    jCmd = {"req",{"get",{"WIFI",""}}};
+
+    nErr = ctrlCommand(jCmd.dump(), szResp, SERIAL_BUFFER_SIZE);
+    if(nErr)
+        return nErr;
+    // parse output
+    try {
+        jResp = json::parse(szResp);
+        nMode = jResp.at("res").at("get").at("WIFI").at("CFG").get<int>();
+        sSSID = jResp.at("res").at("get").at("WIFI").at("SSID").get<std::string>();
+        sPWD = jResp.at("res").at("get").at("WIFI").at("PWD").get<std::string>();
+    }
+    catch (json::exception& e) {
+        #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+            ltime = time(NULL);
+            timestamp = asctime(localtime(&ltime));
+            timestamp[strlen(timestamp) - 1] = 0;
+            fprintf(Logfile, "[%s] [CEsattoController::getWiFiConfig] json exception : %s - %d\n", timestamp, e.what(), e.id);
+            fflush(Logfile);
+        #endif
+        return ERR_CMDFAILED;
+    }
+
+    return nErr;
+}
+
+int CEsattoController::setWiFiConfig(int nMode, std::string sSSID, std::string sPWD)
+{
+    int nErr = PLUGIN_OK;
+    char szResp[SERIAL_BUFFER_SIZE];
+    json jCmd;
+    json jResp;
+
+
+    if(!m_bIsConnected)
+        return ERR_COMMNOLINK;
+
+    jCmd = {"req",{"set",{"WIFI",{{"CFG",nMode},{"SSID",sSSID.c_str()},{"PWD",sPWD.c_str()}}}}};
+    
+    nErr = ctrlCommand(jCmd.dump(), szResp, SERIAL_BUFFER_SIZE);
+    if(nErr)
+        return nErr;
+    // parse output
+    try {
+        #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+                ltime = time(NULL);
+                timestamp = asctime(localtime(&ltime));
+                timestamp[strlen(timestamp) - 1] = 0;
+                fprintf(Logfile, "[%s] [CEsattoController::setWiFiConfig] response : %s\n", timestamp, szResp);
+                fflush(Logfile);
+        #endif
+        jResp = json::parse(szResp);
+    }
+    catch (json::exception& e) {
+        #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+            ltime = time(NULL);
+            timestamp = asctime(localtime(&ltime));
+            timestamp[strlen(timestamp) - 1] = 0;
+            fprintf(Logfile, "[%s] [CEsattoController::getWiFiConfig] json exception : %s - %d\n", timestamp, e.what(), e.id);
+            fflush(Logfile);
+        #endif
+        return ERR_CMDFAILED;
+    }
+
+    return nErr;
+
+}
+
+
 int CEsattoController::syncMotorPosition(int nPos)
 {
     int nErr = PLUGIN_OK;
