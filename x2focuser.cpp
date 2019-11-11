@@ -205,9 +205,6 @@ int	X2Focuser::execModalSettingsDialog(void)
     X2GUIInterface*					ui = uiutil.X2UI();
     X2GUIExchangeInterface*			dx = NULL;//Comes after ui is loaded
     bool bPressedOK = false;
-    bool bLimitEnabled = false;
-	int nMaxPos = 0;
-	int nMinPos = 0;
 	int nPosition = 0;
     mUiEnabled = false;
     int nWiFiMode;
@@ -260,9 +257,6 @@ int	X2Focuser::execModalSettingsDialog(void)
     //Retrieve values from the user interface
     if (bPressedOK) {
         nErr = SB_OK;
-        // get limit option
-        bLimitEnabled = dx->isChecked("limitEnable");
-        dx->propertyInt("posLimit", "value", nMaxPos);
     }
     return nErr;
 }
