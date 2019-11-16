@@ -53,9 +53,9 @@ using json = nlohmann::json;
 #define DRIVER_VERSION      1.0
 
 
-#define SERIAL_BUFFER_SIZE 256
+#define SERIAL_BUFFER_SIZE 4096
 #define MAX_TIMEOUT 1000
-#define LOG_BUFFER_SIZE 256
+#define LOG_BUFFER_SIZE 4096
 
 enum PLUGIN_Errors    {PLUGIN_OK = 0, NOT_CONNECTED, ND_CANT_CONNECT, PLUGIN_BAD_CMD_RESPONSE, COMMAND_FAILED};
 enum MotorStatus    {IDLE = 0, MOVING};
@@ -92,7 +92,7 @@ public:
     int         getTemperature(double &dTemperature);
     int         getPosition(int &nPosition);
     int         syncMotorPosition(int nPos);
-    int         getPosLimit(int &nMax, int &nMin);
+    int         getPosLimit(int &nMin, int &nMax);
 
     int         getWiFiConfig(int &nMode, std::string &sSSID, std::string &sPWD);
     int         setWiFiConfig(int nMode, std::string sSSID, std::string sPWD);

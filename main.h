@@ -4,6 +4,8 @@
 	#define PlugInExport
 #endif
 
+#define PLUGIN_NAME "X2Focuser Essato"
+
 #include "x2focuser.h"
 
 extern "C" PlugInExport int sbPlugInName2(BasicStringInterface& str);

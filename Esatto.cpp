@@ -75,7 +75,7 @@ int CEsattoController::Connect(const char *pszPort)
 #endif
 
     // 9600 8N1
-    nErr = m_pSerx->open(pszPort, 9600, SerXInterface::B_NOPARITY, "-DTR_CONTROL 1");
+    nErr = m_pSerx->open(pszPort, 115200, SerXInterface::B_NOPARITY, "-DTR_CONTROL 1");
     if( nErr == 0)
         m_bIsConnected = true;
     else
@@ -138,7 +138,8 @@ int CEsattoController::haltFocuser()
     if(!m_bIsConnected)
 		return ERR_COMMNOLINK;
 
-	jCmd = {"req",{"cmd",{"MOT1" , {"MOT_ABORT",""}}}};
+	jCmd["req"]["cmd"]["MOT1"]["MOT_ABORT"]="";
+
 	nErr = ctrlCommand(jCmd.dump(), szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
         return nErr;
@@ -186,15 +187,23 @@ int CEsattoController::gotoPosition(int nPos)
     fflush(Logfile);
 #endif
 
-	jCmd = {"req",{"cmd",{"MOT1" ,{"GOTO", nPos}}}};
+	jCmd["req"]["cmd"]["MOT1"]["GOTO"]=nPos;
     nErr = ctrlCommand(jCmd.dump(), szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
         return nErr;
 
 	try {
 		jResp = json::parse(szResp);
-		if(jResp.at("res").at("cmd").at("MOT1").at("GOTO") == "done")
+		if(jResp.at("res").at("cmd").at("MOT1").at("GOTO") == "done") {
 			m_nTargetPos = nPos;
+			#ifdef PLUGIN_DEBUG
+				ltime = time(NULL);
+				timestamp = asctime(localtime(&ltime));
+				timestamp[strlen(timestamp) - 1] = 0;
+				fprintf(Logfile, "[%s] CEsattoController::gotoPosition goto m_nTargetPos =  %d\n", timestamp, m_nTargetPos);
+				fflush(Logfile);
+			#endif
+		}
 		else {
 			m_nTargetPos = m_nCurPos;
 			return ERR_CMDFAILED;
@@ -245,10 +254,28 @@ int CEsattoController::isGoToComplete(bool &bComplete)
 
 	bComplete = false;
 	getDeviceStatus();
+	#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+		ltime = time(NULL);
+		timestamp = asctime(localtime(&ltime));
+		timestamp[strlen(timestamp) - 1] = 0;
+		fprintf(Logfile, "[%s] [CEsattoController::isGoToComplete] m_bMoving = %s\n", timestamp, m_bMoving?"True":"False");
+		fflush(Logfile);
+	#endif
 	if(m_bMoving)
 		return nErr;
 
-    if(m_nCurPos == m_nTargetPos)
+	m_pSleeper->sleep(1000); // need to talk to Filippo about this.-> send email.
+	getDeviceStatus();
+	#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+		ltime = time(NULL);
+		timestamp = asctime(localtime(&ltime));
+		timestamp[strlen(timestamp) - 1] = 0;
+		fprintf(Logfile, "[%s] [CEsattoController::isGoToComplete] m_nCurPos = %d\n", timestamp, m_nCurPos);
+		fprintf(Logfile, "[%s] [CEsattoController::isGoToComplete] m_nTargetPos = %d\n", timestamp, m_nTargetPos);
+		fflush(Logfile);
+	#endif
+
+	if(m_nCurPos == m_nTargetPos)
         bComplete = true;
 	else {
 		// not moving and not at position. command failed
@@ -269,7 +296,14 @@ int CEsattoController::getDeviceStatus()
 	if(!m_bIsConnected)
 		return ERR_COMMNOLINK;
 	
-	jCmd = {"req",{"get",{"MOT1",""}}};
+	jCmd["req"]["get"]["MOT1"]="";
+	#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+		ltime = time(NULL);
+		timestamp = asctime(localtime(&ltime));
+		timestamp[strlen(timestamp) - 1] = 0;
+		fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] jCmd : %s\n", timestamp, jCmd.dump().c_str());
+		fflush(Logfile);
+	#endif
 
 	nErr = ctrlCommand(jCmd.dump(), szResp, SERIAL_BUFFER_SIZE);
 	if(nErr)
@@ -280,7 +314,17 @@ int CEsattoController::getDeviceStatus()
 		m_nCurPos = jResp.at("res").at("get").at("MOT1").at("ABS_POS").get<int>();
 		m_nMaxPos = jResp.at("res").at("get").at("MOT1").at("CAL_MAXPOS").get<int>();
 		m_nMinPos = jResp.at("res").at("get").at("MOT1").at("CAL_MINPOS").get<int>();
-		m_bMoving = (jResp.at("res").at("get").at("MOT1").at("STATUS").at("MST").get<std::string>() == "stop");
+		m_bMoving = (jResp.at("res").at("get").at("MOT1").at("STATUS").at("MST").get<std::string>() != "stop");
+		#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+			ltime = time(NULL);
+			timestamp = asctime(localtime(&ltime));
+			timestamp[strlen(timestamp) - 1] = 0;
+			fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] m_nCurPos : %d\n", timestamp, m_nCurPos);
+			fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] m_nMaxPos : %d\n", timestamp, m_nMaxPos);
+			fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] m_nMinPos : %d\n", timestamp, m_nMinPos);
+			fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] m_bMoving : %s\n", timestamp, m_bMoving?"True":"False");
+			fflush(Logfile);
+		#endif
 	}
     catch (json::exception& e) {
         #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
@@ -310,7 +354,15 @@ int CEsattoController::getFirmwareVersion(char *pszVersion, int nStrMaxLen)
 		return nErr;
 	}
 
-	jCmd = {"req",{"get",{"SWVERS",""}}};
+	jCmd["req"]["get"]["SWVERS"]="";
+
+	#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+		ltime = time(NULL);
+		timestamp = asctime(localtime(&ltime));
+		timestamp[strlen(timestamp) - 1] = 0;
+		fprintf(Logfile, "[%s] [CEsattoController::getFirmwareVersion] jCmd : %s\n", timestamp, jCmd.dump().c_str());
+		fflush(Logfile);
+	#endif
 
 	nErr = ctrlCommand(jCmd.dump(), szResp, SERIAL_BUFFER_SIZE);
 	if(nErr)
@@ -362,7 +414,14 @@ int CEsattoController::getModelName(char *pszModelName, int nStrMaxLen)
 		return nErr;
 	}
 
-	jCmd = {"req",{"get",{"MODNAME",""}}};
+	jCmd["req"]["get"]["MODNAME"]="";
+	#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+		ltime = time(NULL);
+		timestamp = asctime(localtime(&ltime));
+		timestamp[strlen(timestamp) - 1] = 0;
+		fprintf(Logfile, "[%s] [CEsattoController::getModelName] jCmd : %s\n", timestamp, jCmd.dump().c_str());
+		fflush(Logfile);
+	#endif
 
 	nErr = ctrlCommand(jCmd.dump(), szResp, SERIAL_BUFFER_SIZE);
 	if(nErr)
@@ -399,7 +458,15 @@ int CEsattoController::getTemperature(double &dTemperature)
 	if(!m_bIsConnected)
 		return ERR_COMMNOLINK;
 
-	jCmd = {"req",{"get",{"EXT_T",""}}};
+	
+	jCmd["req"]["get"]["EXT_T"]="";
+	#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+		ltime = time(NULL);
+		timestamp = asctime(localtime(&ltime));
+		timestamp[strlen(timestamp) - 1] = 0;
+		fprintf(Logfile, "[%s] [CEsattoController::getTemperature] jCmd : %s\n", timestamp, jCmd.dump().c_str());
+		fflush(Logfile);
+	#endif
 
 	nErr = ctrlCommand(jCmd.dump(), szResp, SERIAL_BUFFER_SIZE);
 	if(nErr)
@@ -407,7 +474,9 @@ int CEsattoController::getTemperature(double &dTemperature)
 	// parse output
 	try {
 		jResp = json::parse(szResp);
-		dTemperature = jResp.at("res").at("get").at("EXT_T").get<double>();
+		dTemperature = std::stod(jResp.at("res").at("get").at("EXT_T").get<std::string>());
+		if(dTemperature == -127.00f)
+			dTemperature = -100.0f;
 	}
     catch (json::exception& e) {
         #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
@@ -419,19 +488,46 @@ int CEsattoController::getTemperature(double &dTemperature)
         #endif
         return ERR_CMDFAILED;
     }
-
+	catch(std::invalid_argument& e){
+        #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+            ltime = time(NULL);
+            timestamp = asctime(localtime(&ltime));
+            timestamp[strlen(timestamp) - 1] = 0;
+            fprintf(Logfile, "[%s] [CEsattoController::getTemperature] stoi invalid_argument exception : %s\n", timestamp, e.what());
+            fflush(Logfile);
+        #endif
+	}
+	catch(std::out_of_range& e){
+        #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+            ltime = time(NULL);
+            timestamp = asctime(localtime(&ltime));
+            timestamp[strlen(timestamp) - 1] = 0;
+            fprintf(Logfile, "[%s] [CEsattoController::getTemperature] stoi out_of_range exception : %s\n", timestamp, e.what());
+            fflush(Logfile);
+        #endif
+	}
+	catch(...) {
+		nErr = ERR_CMDFAILED;
+	}
 	return nErr;
 }
 
-int CEsattoController::getPosLimit(int &nMax, int &nMin)
+int CEsattoController::getPosLimit(int &nMin, int &nMax)
 {
     int nErr = PLUGIN_OK;
 	if(!m_bIsConnected)
 		return ERR_COMMNOLINK;
 
+	#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+		ltime = time(NULL);
+		timestamp = asctime(localtime(&ltime));
+		timestamp[strlen(timestamp) - 1] = 0;
+		fprintf(Logfile, "[%s] [CEsattoController::getPosLimit]\n", timestamp);
+		fflush(Logfile);
+	#endif
 	getDeviceStatus();
-	nMax = m_nMaxPos;
 	nMin = m_nMinPos;
+	nMax = m_nMaxPos;
 
     return nErr;
 }
@@ -441,6 +537,13 @@ int CEsattoController::getPosition(int &nPosition)
 {
 	int nErr = PLUGIN_OK;
 
+	#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+		ltime = time(NULL);
+		timestamp = asctime(localtime(&ltime));
+		timestamp[strlen(timestamp) - 1] = 0;
+		fprintf(Logfile, "[%s] [CEsattoController::getPosition]\n", timestamp);
+		fflush(Logfile);
+	#endif
 	nErr = getDeviceStatus();
 	if(nErr)
 		return nErr;
@@ -461,7 +564,14 @@ int CEsattoController::getWiFiConfig(int &nMode, std::string &sSSID, std::string
     if(!m_bIsConnected)
         return ERR_COMMNOLINK;
 
-    jCmd = {"req",{"get",{"WIFI",""}}};
+	jCmd["req"]["get"]["WIFI"]="";
+	#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+		ltime = time(NULL);
+		timestamp = asctime(localtime(&ltime));
+		timestamp[strlen(timestamp) - 1] = 0;
+		fprintf(Logfile, "[%s] [CEsattoController::getTemperature] jCmd : %s\n", timestamp, jCmd.dump().c_str());
+		fflush(Logfile);
+	#endif
 
     nErr = ctrlCommand(jCmd.dump(), szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
@@ -498,8 +608,10 @@ int CEsattoController::setWiFiConfig(int nMode, std::string sSSID, std::string s
     if(!m_bIsConnected)
         return ERR_COMMNOLINK;
 
-    jCmd = {"req",{"set",{"WIFI",{{"CFG",nMode},{"SSID",sSSID.c_str()},{"PWD",sPWD.c_str()}}}}};
-    
+	jCmd["req"]["set"]["WIFI"]["CSG"]=nMode;
+	jCmd["req"]["set"]["WIFI"]["SSID"]=sSSID.c_str();
+	jCmd["req"]["set"]["WIFI"]["PWD"]=sPWD.c_str();
+
     nErr = ctrlCommand(jCmd.dump(), szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
         return nErr;
@@ -533,7 +645,6 @@ int CEsattoController::setWiFiConfig(int nMode, std::string sSSID, std::string s
 int CEsattoController::syncMotorPosition(int nPos)
 {
     int nErr = PLUGIN_OK;
-    char szCmd[SERIAL_BUFFER_SIZE];
     char szResp[SERIAL_BUFFER_SIZE];
 	json jCmd;
 	json jResp;
@@ -541,9 +652,17 @@ int CEsattoController::syncMotorPosition(int nPos)
 	if(!m_bIsConnected)
 		return ERR_COMMNOLINK;
 
-	jCmd = {"req",{"set",{"MOT1",{"ABS_POS", nPos}}}};
-    printf("setting new pos to %d [ %s ]\n",nPos, szCmd);
-    
+	jCmd["req"]["set"]["MOT1"]["ABS_POS"]=nPos;
+	printf("setting new pos to %d [ %s ]\n",nPos, jCmd.dump().c_str());
+	#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+		ltime = time(NULL);
+		timestamp = asctime(localtime(&ltime));
+		timestamp[strlen(timestamp) - 1] = 0;
+		fprintf(Logfile, "[%s] [CEsattoController::syncMotorPosition] setting new pos to %d [ %s ]\n",timestamp, nPos, jCmd.dump().c_str());
+		fprintf(Logfile, "[%s] [CEsattoController::syncMotorPosition] jCmd : %s\n", timestamp, jCmd.dump().c_str());
+		fflush(Logfile);
+	#endif
+
 	nErr = ctrlCommand(jCmd.dump(), szResp, SERIAL_BUFFER_SIZE);
 	if(nErr)
 		return nErr;
@@ -689,11 +808,11 @@ int CEsattoController::readResponse(char *pszRespBuffer, int nBufferLen)
             break;
         }
         ulTotalBytesRead += ulBytesRead;
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 3
 		ltime = time(NULL);
 		timestamp = asctime(localtime(&ltime));
 		timestamp[strlen(timestamp) - 1] = 0;
-		fprintf(Logfile, "[%s] [CEsattoController::readResponse] ulBytesRead : %lu\\n", timestamp, ulBytesRead);
+		fprintf(Logfile, "[%s] [CEsattoController::readResponse] ulBytesRead : %lu\n", timestamp, ulBytesRead);
 		fflush(Logfile);
 #endif
     } while (*pszBufPtr++ != '\n' && ulTotalBytesRead < nBufferLen );

@@ -313,17 +313,24 @@ int	X2Focuser::focPosition(int& nPosition)
 int	X2Focuser::focMinimumLimit(int& nMinLimit) 		
 {
 	int nMax;
+
+	if(!m_bLinked)
+        return NOT_CONNECTED;
+
 	X2MutexLocker ml(GetMutex());
 	m_Esatto.getPosLimit(nMinLimit, nMax);
 	return SB_OK;
 }
 
-int	X2Focuser::focMaximumLimit(int& nPosLimit)			
+int	X2Focuser::focMaximumLimit(int& nMaxLimit)
 {
 	int nMin;
 
+    if(!m_bLinked)
+        return NOT_CONNECTED;
+
 	X2MutexLocker ml(GetMutex());
-	m_Esatto.getPosLimit(nMin, nPosLimit);
+	m_Esatto.getPosLimit(nMin, nMaxLimit);
 	return SB_OK;
 }
 
