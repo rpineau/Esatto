@@ -608,7 +608,7 @@ int CEsattoController::setWiFiConfig(int nMode, std::string sSSID, std::string s
     if(!m_bIsConnected)
         return ERR_COMMNOLINK;
 
-	jCmd["req"]["set"]["WIFI"]["CSG"]=nMode;
+	jCmd["req"]["set"]["WIFI"]["CFG"]=nMode;
 	jCmd["req"]["set"]["WIFI"]["SSID"]=sSSID.c_str();
 	jCmd["req"]["set"]["WIFI"]["PWD"]=sPWD.c_str();
 
