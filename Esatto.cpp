@@ -264,7 +264,6 @@ int CEsattoController::isGoToComplete(bool &bComplete)
 	if(m_bMoving)
 		return nErr;
 
-	m_pSleeper->sleep(1000); // need to talk to Filippo about this.-> send email.
 	getDeviceStatus();
 	#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
 		ltime = time(NULL);
@@ -278,10 +277,9 @@ int CEsattoController::isGoToComplete(bool &bComplete)
 	if(m_nCurPos == m_nTargetPos)
         bComplete = true;
 	else {
-		// not moving and not at position. command failed
+		// not at the propernposition yet.
         bComplete = false;
-		nErr = ERR_CMDFAILED;
-	}
+ 	}
     return nErr;
 }
 
