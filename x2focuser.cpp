@@ -233,6 +233,7 @@ int	X2Focuser::execModalSettingsDialog(void)
         nErr = m_Esatto.getWiFiConfig(nWiFiMode, sSSID, sPWD);
         if(!nErr) {
             dx->setCurrentIndex("comboBox", nWiFiMode);
+            dx->setEnabled("comboBox", false); // disbale for now until client mode is added.
             dx->setText("sSSID", sSSID.c_str());
             dx->setText("sPWD", sPWD.c_str());
         }

@@ -38,7 +38,7 @@
 #include "json.hpp"
 using json = nlohmann::json;
 
-#define PLUGIN_DEBUG 2
+// #define PLUGIN_DEBUG 2
 
 #ifdef PLUGIN_DEBUG
 #if defined(SB_WIN_BUILD)
