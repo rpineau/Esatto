@@ -1,13 +1,18 @@
 #!/bin/bash
 
+PACKAGE_NAME="Esatto_X2.pkg"
+BUNDLE_NAME="org.rti-zone.EsattoX2"
+
+if [ ! -z "$app_id_signature" ]; then
+    codesign -s "$app_id_signature" ../build/Release/libEsatto.dylib
+fi
+
 mkdir -p ROOT/tmp/Esatto_X2/
 cp "../Esatto.ui" ROOT/tmp/Esatto_X2/
 cp "../PrimaLuceLab.png" ROOT/tmp/Esatto_X2/
 cp "../focuserlist Esatto.txt" ROOT/tmp/Esatto_X2/
 cp "../build/Release/libEsatto.dylib" ROOT/tmp/Esatto_X2/
 
-PACKAGE_NAME="Esatto_X2.pkg"
-BUNDLE_NAME="org.rti-zone.EsattoX2"
 
 if [ ! -z "$installer_signature" ]; then
 	# signed package using env variable installer_signature
