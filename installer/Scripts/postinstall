@@ -30,10 +30,16 @@ echo "Installing in $PLUGINS_DIR/FocuserPlugIns/"
 
 cp "/tmp/Esatto_X2/focuserlist Esatto.txt" "$TheSkyX_Path/Resources/Common/Miscellaneous Files/"
 if [ "$?" -ne "0" ]; then exit 1; fi
+
+rm -f "$PLUGINS_DIR/FocuserPlugIns/Esatto.ui"
 cp "/tmp/Esatto_X2/Esatto.ui" "$PLUGINS_DIR/FocuserPlugIns/"
 if [ "$?" -ne "0" ]; then exit 1; fi
+
+rm -f "$PLUGINS_DIR/FocuserPlugIns/PrimaLuceLab.png"
 cp "/tmp/Esatto_X2/PrimaLuceLab.png" "$PLUGINS_DIR/FocuserPlugIns/"
 if [ "$?" -ne "0" ]; then exit 1; fi
+
+rm -f "$PLUGINS_DIR/FocuserPlugIns/libEsatto.dylib"
 cp "/tmp/Esatto_X2/libEsatto.dylib" "$PLUGINS_DIR/FocuserPlugIns/"
 if [ "$?" -ne "0" ]; then exit 1; fi
 
