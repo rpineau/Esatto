@@ -39,18 +39,7 @@
 using json = nlohmann::json;
 
 // #define PLUGIN_DEBUG 2
-
-#ifdef PLUGIN_DEBUG
-#if defined(SB_WIN_BUILD)
-#define PLUGIN_LOGFILENAME "C:\\EsattoLog.txt"
-#elif defined(SB_LINUX_BUILD)
-#define PLUGIN_LOGFILENAME "/tmp/EsattoLog.txt"
-#elif defined(SB_MAC_BUILD)
-#define PLUGIN_LOGFILENAME "/tmp/EsattoLog.txt"
-#endif
-#endif
-
-#define DRIVER_VERSION      1.0
+#define DRIVER_VERSION      1.1
 
 
 #define SERIAL_BUFFER_SIZE 4096

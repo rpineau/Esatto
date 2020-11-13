@@ -44,7 +44,7 @@ CEsattoController::CEsattoController()
 	ltime = time(NULL);
 	timestamp = asctime(localtime(&ltime));
 	timestamp[strlen(timestamp) - 1] = 0;
-	fprintf(Logfile, "[%s] [CEsattoController::CEsattoController] Version %3.2f build 2019_10_15_0925.\n", timestamp, DRIVER_VERSION);
+	fprintf(Logfile, "[%s] [CEsattoController::CEsattoController] Version %3.2f build 2020_06_15_2025.\n", timestamp, DRIVER_VERSION);
 	fprintf(Logfile, "[%s] [CEsattoController] Constructor Called.\n", timestamp);
 	fflush(Logfile);
 #endif
@@ -74,7 +74,6 @@ int CEsattoController::Connect(const char *pszPort)
 	fflush(Logfile);
 #endif
 
-    // 9600 8N1
     nErr = m_pSerx->open(pszPort, 115200, SerXInterface::B_NOPARITY, "-DTR_CONTROL 1");
     if( nErr == 0)
         m_bIsConnected = true;
