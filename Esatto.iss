@@ -40,14 +40,22 @@ DirExistsWarning=no
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
+[Dirs]
+Name: "{app}\Plugins\FocuserPlugins";
+Name: "{app}\Plugins64\FocuserPlugins";
+
 [Files]
 ; WIll also need to customise these!
-Source: "focuserlist Esatto.txt"; DestDir: "{app}\Miscellaneous Files"; Flags: ignoreversion
-Source: "libEsatto\Release\libEsatto.dll"; DestDir: "{app}\Plugins\FocuserPlugins"; Flags: ignoreversion
-Source: "Esatto.ui"; DestDir: "{app}\Plugins\FocuserPlugins"; Flags: ignoreversion
-Source: "PrimaLuceLab.png"; DestDir: "{app}\Plugins\FocuserPlugins"; Flags: ignoreversion
-; NOTE: Don't use "Flags: ignoreversion" on any shared system files
-; msgBox('Do you want to install MyProg.exe to ' + ExtractFilePath(CurrentFileName) + '?', mbConfirmation, MB_YESNO)
+Source: "focuserlist Esatto.txt";                   DestDir: "{app}\Miscellaneous Files"; Flags: ignoreversion
+Source: "focuserlist Esatto.txt";                   DestDir: "{app}\Miscellaneous Files"; DestName: "focuserlist64 Esatto.txt";Flags: ignoreversion
+;32 bits
+Source: "libEsatto\Win32\Release\libEsatto.dll";    DestDir: "{app}\Plugins\FocuserPlugins"; Flags: ignoreversion
+Source: "Esatto.ui";                                DestDir: "{app}\Plugins\FocuserPlugins"; Flags: ignoreversion
+Source: "PrimaLuceLab.png";                         DestDir: "{app}\Plugins\FocuserPlugins"; Flags: ignoreversion
+; 64 bits
+Source: "libEsatto\x64\Release\libEsatto.dll";      DestDir: "{app}\Plugins64\FocuserPlugins"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{app}\Plugins64\FocuserPlugins'))
+Source: "Esatto.ui";                                DestDir: "{app}\Plugins64\FocuserPlugins"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{app}\Plugins64\FocuserPlugins'))
+Source: "PrimaLuceLab.png";                         DestDir: "{app}\Plugins64\FocuserPlugins"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{app}\Plugins64\FocuserPlugins'))
 
 
 [Code]
