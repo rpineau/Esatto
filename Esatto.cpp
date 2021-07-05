@@ -44,7 +44,7 @@ CEsattoController::CEsattoController()
 	ltime = time(NULL);
 	timestamp = asctime(localtime(&ltime));
 	timestamp[strlen(timestamp) - 1] = 0;
-	fprintf(Logfile, "[%s] [CEsattoController::CEsattoController] Version %3.2f build 2020_06_15_2025.\n", timestamp, DRIVER_VERSION);
+	fprintf(Logfile, "[%s] [CEsattoController::CEsattoController] Version %3.2f build 2021_07_05_0945.\n", timestamp, DRIVER_VERSION);
 	fprintf(Logfile, "[%s] [CEsattoController] Constructor Called.\n", timestamp);
 	fflush(Logfile);
 #endif
@@ -767,55 +767,82 @@ int CEsattoController::ctrlCommand(const std::string sCmd, char *pszResult, int 
     return nErr;
 }
 
-int CEsattoController::readResponse(char *pszRespBuffer, int nBufferLen)
+int CEsattoController::readResponse(char *szRespBuffer, int nBufferLen, int nTimeout)
 {
     int nErr = PLUGIN_OK;
     unsigned long ulBytesRead = 0;
     unsigned long ulTotalBytesRead = 0;
     char *pszBufPtr;
-	
-	if(!m_bIsConnected)
-		return ERR_COMMNOLINK;
+    int nBytesWaiting = 0 ;
+    int nbTimeouts = 0;
 
-    memset(pszRespBuffer, 0, (size_t) nBufferLen);
-    pszBufPtr = pszRespBuffer;
+    memset(szRespBuffer, 0, (size_t) nBufferLen);
+    pszBufPtr = szRespBuffer;
 
     do {
-        nErr = m_pSerx->readFile(pszBufPtr, 1, ulBytesRead, MAX_TIMEOUT);
+        nErr = m_pSerx->bytesWaitingRx(nBytesWaiting);
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 3
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CRTIDome::readResponse] nBytesWaiting = %d\n", timestamp, nBytesWaiting);
+        fprintf(Logfile, "[%s] [CRTIDome::readResponse] nBytesWaiting nErr = %d\n", timestamp, nErr);
+        fflush(Logfile);
+#endif
+        if(!nBytesWaiting) {
+            if(nbTimeouts++ >= NB_RX_WAIT) {
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+                ltime = time(NULL);
+                timestamp = asctime(localtime(&ltime));
+                timestamp[strlen(timestamp) - 1] = 0;
+                fprintf(Logfile, "[%s] [CRTIDome::readResponse] bytesWaitingRx timeout, no data for %d loops\n", timestamp, NB_RX_WAIT);
+                fflush(Logfile);
+#endif
+                nErr = ERR_RXTIMEOUT;
+                break;
+            }
+            m_pSleeper->sleep(MAX_READ_WAIT_TIMEOUT);
+            continue;
+        }
+        nbTimeouts = 0;
+        if(ulTotalBytesRead + nBytesWaiting <= nBufferLen)
+            nErr = m_pSerx->readFile(pszBufPtr, nBytesWaiting, ulBytesRead, nTimeout);
+        else {
+            nErr = ERR_RXTIMEOUT;
+            break; // buffer is full.. there is a problem !!
+        }
         if(nErr) {
 #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
-			ltime = time(NULL);
-			timestamp = asctime(localtime(&ltime));
-			timestamp[strlen(timestamp) - 1] = 0;
-			fprintf(Logfile, "[%s] [CEsattoController::readResponse] readFile Error : %d\n", timestamp, nErr);
-			fflush(Logfile);
+            ltime = time(NULL);
+            timestamp = asctime(localtime(&ltime));
+            timestamp[strlen(timestamp) - 1] = 0;
+            fprintf(Logfile, "[%s] [CRTIDome::readResponse] readFile error.\n", timestamp);
+            fflush(Logfile);
 #endif
             return nErr;
         }
 
-        if (ulBytesRead !=1) {// timeout
+        if (ulBytesRead != nBytesWaiting) { // timeout
 #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
-			ltime = time(NULL);
-			timestamp = asctime(localtime(&ltime));
-			timestamp[strlen(timestamp) - 1] = 0;
-			fprintf(Logfile, "[%s] [CEsattoController::readResponse] readFile Timeout\n", timestamp);
-			fflush(Logfile);
+            ltime = time(NULL);
+            timestamp = asctime(localtime(&ltime));
+            timestamp[strlen(timestamp) - 1] = 0;
+            fprintf(Logfile, "[%s] [CRTIDome::readResponse] readFile Timeout Error\n", timestamp);
+            fprintf(Logfile, "[%s] [CRTIDome::readResponse] readFile nBytesWaiting = %d\n", timestamp, nBytesWaiting);
+            fprintf(Logfile, "[%s] [CRTIDome::readResponse] readFile ulBytesRead = %lu\n", timestamp, ulBytesRead);
+            fflush(Logfile);
 #endif
-            nErr = ERR_NORESPONSE;
-            break;
         }
-        ulTotalBytesRead += ulBytesRead;
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 3
-		ltime = time(NULL);
-		timestamp = asctime(localtime(&ltime));
-		timestamp[strlen(timestamp) - 1] = 0;
-		fprintf(Logfile, "[%s] [CEsattoController::readResponse] ulBytesRead : %lu\n", timestamp, ulBytesRead);
-		fflush(Logfile);
-#endif
-    } while (*pszBufPtr++ != '\n' && ulTotalBytesRead < nBufferLen );
 
-    if(ulTotalBytesRead)
-        *(pszBufPtr-1) = 0; //remove the \n
+        ulTotalBytesRead += ulBytesRead;
+        pszBufPtr+=ulBytesRead;
+    } while (ulTotalBytesRead < nBufferLen  && *(pszBufPtr-1) != '\n');
+
+    if(!ulTotalBytesRead)
+        nErr = COMMAND_TIMEOUT; // we didn't get an answer.. so timeout
+    else
+        *(pszBufPtr-1) = 0; //remove the #
 
     return nErr;
 }
+

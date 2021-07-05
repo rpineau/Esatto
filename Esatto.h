@@ -39,14 +39,17 @@
 using json = nlohmann::json;
 
 // #define PLUGIN_DEBUG 2
-#define DRIVER_VERSION      1.1
+#define DRIVER_VERSION      1.2
 
 
 #define SERIAL_BUFFER_SIZE 4096
 #define MAX_TIMEOUT 1000
+#define MAX_READ_WAIT_TIMEOUT 25
+#define NB_RX_WAIT 10
+
 #define LOG_BUFFER_SIZE 4096
 
-enum PLUGIN_Errors    {PLUGIN_OK = 0, NOT_CONNECTED, ND_CANT_CONNECT, PLUGIN_BAD_CMD_RESPONSE, COMMAND_FAILED};
+enum PLUGIN_Errors    {PLUGIN_OK = 0, NOT_CONNECTED, ND_CANT_CONNECT, PLUGIN_BAD_CMD_RESPONSE, COMMAND_FAILED, COMMAND_TIMEOUT};
 enum MotorStatus    {IDLE = 0, MOVING};
 
 
@@ -89,8 +92,7 @@ public:
 protected:
 
 	int             ctrlCommand(const std::string sCmd, char *pszResult, int nResultMaxLen);
-    int             readResponse(char *pszRespBuffer, int nBufferLen);
-
+    int             readResponse(char *respBuffer, int nBufferLen, int nTimeout = MAX_TIMEOUT);
     SerXInterface   *m_pSerx;
     SleeperInterface    *m_pSleeper;
 
