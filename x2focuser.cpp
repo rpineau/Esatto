@@ -153,7 +153,7 @@ void X2Focuser::deviceInfoFirmwareVersion(BasicStringInterface& str)
 
 void X2Focuser::deviceInfoModel(BasicStringInterface& str)							
 {
-    str="Esatto";
+    deviceInfoNameShort(str);
 }
 
 #pragma mark - LinkInterface
@@ -204,10 +204,13 @@ int	X2Focuser::execModalSettingsDialog(void)
     X2ModalUIUtil uiutil(this, GetTheSkyXFacadeForDrivers());
     X2GUIInterface*					ui = uiutil.X2UI();
     X2GUIExchangeInterface*			dx = NULL;//Comes after ui is loaded
+    char szBuffer[LOG_BUFFER_SIZE];
     bool bPressedOK = false;
 	int nPosition = 0;
+    int minPos = 0;
+    int maxPos = 0;
     mUiEnabled = false;
-    int nWiFiMode;
+    int nWiFiMode = AP;
     std::string sSSID;
     std::string sPWD;
     
@@ -230,12 +233,23 @@ int	X2Focuser::execModalSettingsDialog(void)
         dx->setEnabled("newPos", true);
         dx->setEnabled("pushButton", true);
         dx->setPropertyInt("newPos", "value", nPosition);
+        nErr = m_Esatto.getPosLimit(minPos, maxPos);
+        dx->setEnabled("maxPos", true);
+        dx->setEnabled("pushButton_3", true);
+        dx->setPropertyInt("maxPos", "value", maxPos);
+        snprintf(szBuffer, LOG_BUFFER_SIZE, "Current position : %d", nPosition);
+        dx->setText("curPosLabel",szBuffer);
+
         nErr = m_Esatto.getWiFiConfig(nWiFiMode, sSSID, sPWD);
         if(!nErr) {
-            dx->setCurrentIndex("comboBox", nWiFiMode);
-            dx->setEnabled("comboBox", false); // disbale for now until client mode is added.
             dx->setText("sSSID", sSSID.c_str());
             dx->setText("sPWD", sPWD.c_str());
+            dx->setEnabled("pushButton_2", true);
+        }
+        else {
+            dx->setText("sSSID", "not available");
+            dx->setEnabled("sPWD", false);
+            dx->setEnabled("pushButton_2", false);
         }
     }
     else {
@@ -266,16 +280,28 @@ void X2Focuser::uiEvent(X2GUIExchangeInterface* uiex, const char* pszEvent)
 {
     int nErr = SB_OK;
     int nTmpVal;
-    char szErrorMessage[LOG_BUFFER_SIZE];
+    char szBuffer[LOG_BUFFER_SIZE];
 
+    if (!strcmp(pszEvent, "on_timer")) {
+        nErr = m_Esatto.getPosition(nTmpVal);
+        if(!nErr) {
+            snprintf(szBuffer, LOG_BUFFER_SIZE, "Current position : %d", nTmpVal);
+            uiex->setText("curPosLabel",szBuffer);
+        }
+    }
     // new position
     if (!strcmp(pszEvent, "on_pushButton_clicked")) {
         uiex->propertyInt("newPos", "value", nTmpVal);
         nErr = m_Esatto.syncMotorPosition(nTmpVal);
         if(nErr) {
-            snprintf(szErrorMessage, LOG_BUFFER_SIZE, "Error setting new position : Error %d", nErr);
-            uiex->messageBox("Set New Position", szErrorMessage);
+            snprintf(szBuffer, LOG_BUFFER_SIZE, "Error setting new position : Error %d", nErr);
+            uiex->messageBox("Set New Position", szBuffer);
             return;
+        }
+        nErr = m_Esatto.getPosition(nTmpVal);
+        if(!nErr) {
+            snprintf(szBuffer, LOG_BUFFER_SIZE, "Current position : %d", nTmpVal);
+            uiex->setText("curPosLabel",szBuffer);
         }
     } else if (!strcmp(pszEvent, "on_pushButton_2_clicked")) {
         std::string sSSID;
@@ -289,11 +315,22 @@ void X2Focuser::uiEvent(X2GUIExchangeInterface* uiex, const char* pszEvent)
         nWifiMode = uiex->currentIndex("comboBox");
         nErr = m_Esatto.setWiFiConfig(nWifiMode, sSSID, sPWD);
         if(nErr){
-            snprintf(szErrorMessage, LOG_BUFFER_SIZE, "Error setting new WiFi parameters : Error %d", nErr);
-            uiex->messageBox("Set WiFi Configuration", szErrorMessage);
+            snprintf(szBuffer, LOG_BUFFER_SIZE, "Error setting new WiFi parameters : Error %d", nErr);
+            uiex->messageBox("Set WiFi Configuration", szBuffer);
             return;
         }
     }
+
+    else if (!strcmp(pszEvent, "on_pushButton_3_clicked")) {
+        uiex->propertyInt("maxPos", "value", nTmpVal);
+        nErr = m_Esatto.setPosLimit(0, nTmpVal);
+        if(nErr) {
+            snprintf(szBuffer, LOG_BUFFER_SIZE, "Error setting max position : Error %d", nErr);
+            uiex->messageBox("Set Max Position", szBuffer);
+            return;
+        }
+    }
+
 }
 
 #pragma mark - FocuserGotoInterface2
@@ -420,7 +457,12 @@ int X2Focuser::focTemperature(double &dTemperature)
     static CStopWatch timer;
 
     if(timer.GetElapsedSeconds() > 30.0f || m_fLastTemp < -99.0f) {
-        nErr = m_Esatto.getTemperature(m_fLastTemp);
+        nErr = m_Esatto.getTemperature(m_fLastTemp, EXT_T);
+        if(m_fLastTemp == -127.00f) {
+            nErr = m_Esatto.getTemperature(m_fLastTemp, NTC_T);
+            if(m_fLastTemp == -127.00f)
+                m_fLastTemp = -100.00f;
+        }
         timer.Reset();
     }
 

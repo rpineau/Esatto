@@ -113,7 +113,9 @@ int CEsattoController::Connect(const char *pszPort)
 #endif
         return nErr;
     }
-
+    if(m_nMaxPos == 0) {
+        setPosLimit(0, 1000000);
+    }
 	return nErr;
 }
 
@@ -145,6 +147,13 @@ int CEsattoController::haltFocuser()
 	// parse output
 	try {
 		jResp = json::parse(szResp);
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::haltFocuser] response :\n%s\n", timestamp, jResp.dump(2).c_str());
+        fflush(Logfile);
+#endif
 		if(jResp.at("res").at("cmd").at("MOT1").at("MOT_ABORT") == "done")
 			m_nTargetPos = m_nCurPos;
 		else
@@ -193,6 +202,13 @@ int CEsattoController::gotoPosition(int nPos)
 
 	try {
 		jResp = json::parse(szResp);
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::gotoPosition] response :\n%s\n", timestamp, jResp.dump(2).c_str());
+        fflush(Logfile);
+#endif
 		if(jResp.at("res").at("cmd").at("MOT1").at("GOTO") == "done") {
 			m_nTargetPos = nPos;
 			#ifdef PLUGIN_DEBUG
@@ -308,6 +324,13 @@ int CEsattoController::getDeviceStatus()
 	// parse output
 	try {
 		jResp = json::parse(szResp);
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] response :\n%s\n", timestamp, jResp.dump(2).c_str());
+        fflush(Logfile);
+#endif
 		m_nCurPos = jResp.at("res").at("get").at("MOT1").at("ABS_POS").get<int>();
 		m_nMaxPos = jResp.at("res").at("get").at("MOT1").at("CAL_MAXPOS").get<int>();
 		m_nMinPos = jResp.at("res").at("get").at("MOT1").at("CAL_MINPOS").get<int>();
@@ -367,6 +390,13 @@ int CEsattoController::getFirmwareVersion(char *pszVersion, int nStrMaxLen)
 	// parse output
 	try {
 		jResp = json::parse(szResp);
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::getFirmwareVersion] response :\n%s\n", timestamp, jResp.dump(2).c_str());
+        fflush(Logfile);
+#endif
 		m_sAppVer = jResp.at("res").at("get").at("SWVERS").at("SWAPP").get<std::string>();
 		m_sWebVer = jResp.at("res").at("get").at("SWVERS").at("SWWEB").get<std::string>();
 	}
@@ -426,6 +456,13 @@ int CEsattoController::getModelName(char *pszModelName, int nStrMaxLen)
 	// parse output
 	try {
 		jResp = json::parse(szResp);
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::getModelName] response :\n%s\n", timestamp, jResp.dump(2).c_str());
+        fflush(Logfile);
+#endif
 		m_sModelName = jResp.at("res").at("get").at("MODNAME").get<std::string>();
 	}
     catch (json::exception& e) {
@@ -444,19 +481,28 @@ int CEsattoController::getModelName(char *pszModelName, int nStrMaxLen)
 }
 
 
-int CEsattoController::getTemperature(double &dTemperature)
+int CEsattoController::getTemperature(double &dTemperature, int nTempProbe)
 {
     int nErr = PLUGIN_OK;
     char szResp[SERIAL_BUFFER_SIZE];
 	json jCmd;
 	json jResp;
 
-
 	if(!m_bIsConnected)
 		return ERR_COMMNOLINK;
 
+    switch (nTempProbe) {
+        case EXT_T:
+            jCmd["req"]["get"]["EXT_T"]="";
+            break;
+        case NTC_T:
+            jCmd["req"]["get"]["MOT1"]["NTC_T"]="";
+            break;
+        default:
+            jCmd["req"]["get"]["MOT1"]["NTC_T"]="";
+            break;
+    }
 	
-	jCmd["req"]["get"]["EXT_T"]="";
 	#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
 		ltime = time(NULL);
 		timestamp = asctime(localtime(&ltime));
@@ -471,9 +517,25 @@ int CEsattoController::getTemperature(double &dTemperature)
 	// parse output
 	try {
 		jResp = json::parse(szResp);
-		dTemperature = std::stod(jResp.at("res").at("get").at("EXT_T").get<std::string>());
-		if(dTemperature == -127.00f)
-			dTemperature = -100.0f;
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::getTemperature] response :\n%s\n", timestamp, jResp.dump(2).c_str());
+        fflush(Logfile);
+#endif
+        switch (nTempProbe) {
+            case EXT_T:
+                dTemperature = std::stod(jResp.at("res").at("get").at("EXT_T").get<std::string>());
+                break;
+            case NTC_T:
+                dTemperature = std::stod(jResp.at("res").at("get").at("MOT1").at("NTC_T").get<std::string>());
+                break;
+            default:
+                dTemperature = std::stod(jResp.at("res").at("get").at("MOT1").at("NTC_T").get<std::string>());
+                break;
+        }
+
 	}
     catch (json::exception& e) {
         #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
@@ -529,6 +591,112 @@ int CEsattoController::getPosLimit(int &nMin, int &nMax)
     return nErr;
 }
 
+int CEsattoController::setPosLimit(int nMin, int nMax)
+{
+    int nErr = PLUGIN_OK;
+    char szResp[SERIAL_BUFFER_SIZE];
+    json jCmd;
+    json jResp;
+
+    if(!m_bIsConnected)
+        return ERR_COMMNOLINK;
+
+
+    jCmd["req"]["set"]["MOT1"]["CAL_MINPOS"]=nMin;
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+    ltime = time(NULL);
+    timestamp = asctime(localtime(&ltime));
+    timestamp[strlen(timestamp) - 1] = 0;
+    fprintf(Logfile, "[%s] [CEsattoController::setPosLimit] setting new min pos to %d [ %s ]\n",timestamp, nMin, jCmd.dump().c_str());
+    fprintf(Logfile, "[%s] [CEsattoController::setPosLimit] jCmd : %s\n", timestamp, jCmd.dump().c_str());
+    fflush(Logfile);
+#endif
+
+    nErr = ctrlCommand(jCmd.dump(), szResp, SERIAL_BUFFER_SIZE);
+    if(nErr)
+        return nErr;
+    // parse output
+    try {
+        jResp = json::parse(szResp);
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::setPosLimit] response :\n%s\n", timestamp, jResp.dump(2).c_str());
+        fflush(Logfile);
+#endif
+        if(jResp.at("res").at("set").at("MOT1").at("CAL_MINPOS") != "done")
+            return ERR_CMDFAILED;
+
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::setPosLimit] response : %s\n", timestamp, szResp);
+        fflush(Logfile);
+#endif
+    }
+    catch (json::exception& e) {
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::setPosLimit] json exception : %s - %d\n", timestamp, e.what(), e.id);
+        fflush(Logfile);
+#endif
+        return ERR_CMDFAILED;
+    }
+    m_nMinPos = nMin;
+
+    jResp.clear();
+    jCmd["req"]["set"]["MOT1"]["CAL_MAXPOS"]=nMax;
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+    ltime = time(NULL);
+    timestamp = asctime(localtime(&ltime));
+    timestamp[strlen(timestamp) - 1] = 0;
+    fprintf(Logfile, "[%s] [CEsattoController::setPosLimit] setting new max pos to %d [ %s ]\n",timestamp, nMax, jCmd.dump().c_str());
+    fprintf(Logfile, "[%s] [CEsattoController::setPosLimit] jCmd : %s\n", timestamp, jCmd.dump().c_str());
+    fflush(Logfile);
+#endif
+
+    nErr = ctrlCommand(jCmd.dump(), szResp, SERIAL_BUFFER_SIZE);
+    if(nErr)
+        return nErr;
+    // parse output
+    try {
+        jResp = json::parse(szResp);
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::setPosLimit] response :\n%s\n", timestamp, jResp.dump(2).c_str());
+        fflush(Logfile);
+#endif
+        if(jResp.at("res").at("set").at("MOT1").at("CAL_MAXPOS") != "done")
+            return ERR_CMDFAILED;
+
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::setPosLimit] response : %s\n", timestamp, szResp);
+        fflush(Logfile);
+#endif
+    }
+    catch (json::exception& e) {
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::setPosLimit] json exception : %s - %d\n", timestamp, e.what(), e.id);
+        fflush(Logfile);
+#endif
+        return ERR_CMDFAILED;
+    }
+
+    m_nMaxPos = nMax;
+    return nErr;
+}
 
 int CEsattoController::getPosition(int &nPosition)
 {
@@ -556,17 +724,32 @@ int CEsattoController::getWiFiConfig(int &nMode, std::string &sSSID, std::string
     char szResp[SERIAL_BUFFER_SIZE];
     json jCmd;
     json jResp;
-
+    std::string wifiMode;
 
     if(!m_bIsConnected)
         return ERR_COMMNOLINK;
 
-	jCmd["req"]["get"]["WIFI"]="";
+    // get lan mode  : {"req":{"get":{"LANCFG":""}}}
+    // haven't found how to change mode
+    // and only the password can be changed from my tests.
+    // for now .. nMode = AP always
+    nMode = AP;
+    switch(nMode) {
+        case AP :
+            wifiMode = "WIFIAP";
+            break;
+        case STA :
+            wifiMode = "WIFISTA";
+            break;
+        default:
+            break;
+    }
+	jCmd["req"]["get"][wifiMode]="";
 	#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
 		ltime = time(NULL);
 		timestamp = asctime(localtime(&ltime));
 		timestamp[strlen(timestamp) - 1] = 0;
-		fprintf(Logfile, "[%s] [CEsattoController::getTemperature] jCmd : %s\n", timestamp, jCmd.dump().c_str());
+		fprintf(Logfile, "[%s] [CEsattoController::getWiFiConfig] jCmd : %s\n", timestamp, jCmd.dump().c_str());
 		fflush(Logfile);
 	#endif
 
@@ -576,9 +759,15 @@ int CEsattoController::getWiFiConfig(int &nMode, std::string &sSSID, std::string
     // parse output
     try {
         jResp = json::parse(szResp);
-        nMode = jResp.at("res").at("get").at("WIFI").at("CFG").get<int>();
-        sSSID = jResp.at("res").at("get").at("WIFI").at("SSID").get<std::string>();
-        sPWD = jResp.at("res").at("get").at("WIFI").at("PWD").get<std::string>();
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::getWiFiConfig] response :\n%s\n", timestamp, jResp.dump(2).c_str());
+        fflush(Logfile);
+#endif
+        sSSID = jResp.at("res").at("get").at(wifiMode).at("SSID").get<std::string>();
+        sPWD = jResp.at("res").at("get").at(wifiMode).at("PWD").get<std::string>();
     }
     catch (json::exception& e) {
         #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
@@ -600,14 +789,30 @@ int CEsattoController::setWiFiConfig(int nMode, std::string sSSID, std::string s
     char szResp[SERIAL_BUFFER_SIZE];
     json jCmd;
     json jResp;
-
+    std::string wifiMode;
 
     if(!m_bIsConnected)
         return ERR_COMMNOLINK;
 
-	jCmd["req"]["set"]["WIFI"]["CFG"]=nMode;
-	jCmd["req"]["set"]["WIFI"]["SSID"]=sSSID.c_str();
-	jCmd["req"]["set"]["WIFI"]["PWD"]=sPWD.c_str();
+    // haven't found how to change mode
+    // and only the password can be changed from my tests.
+    // for now .. nMode = AP always
+    nMode = AP;
+
+    switch(nMode) {
+        case AP :
+            wifiMode = "WIFIAP";
+            break;
+        case STA :
+            wifiMode = "WIFISTA";
+            break;
+        default:
+            break;
+    }
+
+
+	// jCmd["req"]["set"][wifiMode]["SSID"]=sSSID.c_str();
+	jCmd["req"]["set"][wifiMode]["PWD"]=sPWD.c_str();
 
     nErr = ctrlCommand(jCmd.dump(), szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
@@ -622,13 +827,20 @@ int CEsattoController::setWiFiConfig(int nMode, std::string sSSID, std::string s
                 fflush(Logfile);
         #endif
         jResp = json::parse(szResp);
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::setWiFiConfig] response :\n%s\n", timestamp, jResp.dump(2).c_str());
+        fflush(Logfile);
+#endif
     }
     catch (json::exception& e) {
         #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
             ltime = time(NULL);
             timestamp = asctime(localtime(&ltime));
             timestamp[strlen(timestamp) - 1] = 0;
-            fprintf(Logfile, "[%s] [CEsattoController::getWiFiConfig] json exception : %s - %d\n", timestamp, e.what(), e.id);
+            fprintf(Logfile, "[%s] [CEsattoController::setWiFiConfig] json exception : %s - %d\n", timestamp, e.what(), e.id);
             fflush(Logfile);
         #endif
         return ERR_CMDFAILED;
@@ -650,7 +862,6 @@ int CEsattoController::syncMotorPosition(int nPos)
 		return ERR_COMMNOLINK;
 
 	jCmd["req"]["set"]["MOT1"]["ABS_POS"]=nPos;
-	printf("setting new pos to %d [ %s ]\n",nPos, jCmd.dump().c_str());
 	#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
 		ltime = time(NULL);
 		timestamp = asctime(localtime(&ltime));
@@ -666,23 +877,23 @@ int CEsattoController::syncMotorPosition(int nPos)
 	// parse output
 	try {
 		jResp = json::parse(szResp);
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::syncMotorPosition] response :\n%s\n", timestamp, jResp.dump(2).c_str());
+        fflush(Logfile);
+#endif
 		if(jResp.at("res").at("set").at("MOT1").at("ABS_POS") != "done")
 			return ERR_CMDFAILED;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
-		ltime = time(NULL);
-		timestamp = asctime(localtime(&ltime));
-		timestamp[strlen(timestamp) - 1] = 0;
-		fprintf(Logfile, "[%s] [CEsattoController::getTemperature] response : %s\n", timestamp, szResp);
-		fflush(Logfile);
-#endif
 	}
 	catch (json::exception& e) {
 #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
 		ltime = time(NULL);
 		timestamp = asctime(localtime(&ltime));
 		timestamp[strlen(timestamp) - 1] = 0;
-		fprintf(Logfile, "[%s] [CEsattoController::getTemperature] json exception : %s - %d\n", timestamp, e.what(), e.id);
+		fprintf(Logfile, "[%s] [CEsattoController::syncMotorPosition] json exception : %s - %d\n", timestamp, e.what(), e.id);
 		fflush(Logfile);
 #endif
 		return ERR_CMDFAILED;

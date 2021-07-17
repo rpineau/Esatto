@@ -39,10 +39,10 @@
 using json = nlohmann::json;
 
 // #define PLUGIN_DEBUG 2
-#define DRIVER_VERSION      1.2
+#define DRIVER_VERSION      1.3
 
 
-#define SERIAL_BUFFER_SIZE 4096
+#define SERIAL_BUFFER_SIZE 8192
 #define MAX_TIMEOUT 1000
 #define MAX_READ_WAIT_TIMEOUT 25
 #define NB_RX_WAIT 10
@@ -51,7 +51,8 @@ using json = nlohmann::json;
 
 enum PLUGIN_Errors    {PLUGIN_OK = 0, NOT_CONNECTED, ND_CANT_CONNECT, PLUGIN_BAD_CMD_RESPONSE, COMMAND_FAILED, COMMAND_TIMEOUT};
 enum MotorStatus    {IDLE = 0, MOVING};
-
+enum WiFiModes      {AP=0, STA};
+enum TempProbe      {EXT_T = 0, NTC_T};
 
 class CEsattoController
 {
@@ -81,10 +82,11 @@ public:
 
     int         getFirmwareVersion(char *pszVersion, int nStrMaxLen);
 	int         getModelName(char *pszModelName, int nStrMaxLen);
-    int         getTemperature(double &dTemperature);
+    int         getTemperature(double &dTemperature, int nTempProbe);
     int         getPosition(int &nPosition);
     int         syncMotorPosition(int nPos);
     int         getPosLimit(int &nMin, int &nMax);
+    int         setPosLimit(int nMin, int nMax);
 
     int         getWiFiConfig(int &nMode, std::string &sSSID, std::string &sPWD);
     int         setWiFiConfig(int nMode, std::string sSSID, std::string sPWD);
