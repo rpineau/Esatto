@@ -213,7 +213,8 @@ int	X2Focuser::execModalSettingsDialog(void)
     int nWiFiMode = AP;
     std::string sSSID;
     std::string sPWD;
-    
+    int nDir;
+
     if (NULL == ui)
         return ERR_POINTER;
 
@@ -234,12 +235,28 @@ int	X2Focuser::execModalSettingsDialog(void)
         dx->setEnabled("pushButton", true);
         dx->setPropertyInt("newPos", "value", nPosition);
         nErr = m_Esatto.getPosLimit(minPos, maxPos);
-        dx->setEnabled("maxPos", true);
-        dx->setEnabled("pushButton_3", true);
+        if(m_Esatto.getModel()==SESTO) {
+            dx->setEnabled("maxPos", true);
+            dx->setEnabled("pushButton_3", true);
+        }
+        else { // don't change the limits on the Esatto.
+            dx->setEnabled("maxPos", false);
+            dx->setEnabled("pushButton_3", false);
+        }
         dx->setPropertyInt("maxPos", "value", maxPos);
         snprintf(szBuffer, LOG_BUFFER_SIZE, "Current position : %d", nPosition);
         dx->setText("curPosLabel",szBuffer);
-
+        nErr = m_Esatto.getDirection(nDir);
+        switch (nDir) {
+            case NORMAL:
+                dx->setChecked("radioButton", 1);
+                break;
+            case INVERT:
+                dx->setChecked("radioButton_2", 1);
+                break;
+            default:
+                break;
+        }
         nErr = m_Esatto.getWiFiConfig(nWiFiMode, sSSID, sPWD);
         if(!nErr) {
             dx->setText("sSSID", sSSID.c_str());
@@ -271,6 +288,10 @@ int	X2Focuser::execModalSettingsDialog(void)
 
     //Retrieve values from the user interface
     if (bPressedOK) {
+        if(dx->isChecked("radioButton"))
+            m_Esatto.setDirection(NORMAL);
+        else
+            m_Esatto.setDirection(INVERT);
         nErr = SB_OK;
     }
     return nErr;

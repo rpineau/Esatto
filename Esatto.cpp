@@ -24,7 +24,8 @@ CEsattoController::CEsattoController()
 	m_sAppVer.clear();
 	m_sWebVer.clear();
 	m_sModelName.clear();
-
+    m_nModel = ESATTO;
+    
 #ifdef PLUGIN_DEBUG
 #if defined(SB_WIN_BUILD)
 	m_sLogfilePath = getenv("HOMEDRIVE");
@@ -335,7 +336,14 @@ int CEsattoController::getDeviceStatus()
 		m_nMaxPos = jResp.at("res").at("get").at("MOT1").at("CAL_MAXPOS").get<int>();
 		m_nMinPos = jResp.at("res").at("get").at("MOT1").at("CAL_MINPOS").get<int>();
 		m_bMoving = (jResp.at("res").at("get").at("MOT1").at("STATUS").at("MST").get<std::string>() != "stop");
-		#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        if(jResp.at("res").at("get").at("MOT1").at("CAL_DIR").get<std::string>().find("normal")!=-1)
+            m_nDir = NORMAL;
+        else if(jResp.at("res").at("get").at("MOT1").at("CAL_DIR").get<std::string>().find("invert")!=-1)
+            m_nDir = INVERT;
+        else
+            m_nDir = NORMAL; // just in case.
+
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
 			ltime = time(NULL);
 			timestamp = asctime(localtime(&ltime));
 			timestamp[strlen(timestamp) - 1] = 0;
@@ -343,8 +351,9 @@ int CEsattoController::getDeviceStatus()
 			fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] m_nMaxPos : %d\n", timestamp, m_nMaxPos);
 			fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] m_nMinPos : %d\n", timestamp, m_nMinPos);
 			fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] m_bMoving : %s\n", timestamp, m_bMoving?"True":"False");
+            fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] m_nDir    : %s\n", timestamp, (m_nDir==NORMAL)?"normal":"invert");
 			fflush(Logfile);
-		#endif
+#endif
 	}
     catch (json::exception& e) {
         #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
@@ -477,9 +486,18 @@ int CEsattoController::getModelName(char *pszModelName, int nStrMaxLen)
     }
 
     strncpy(pszModelName, m_sModelName.c_str(), nStrMaxLen);
+    if(m_sModelName.find("ESATTO") !=-1)
+        m_nModel = ESATTO;
+    else if(m_sModelName.find("SESTO") !=-1)
+        m_nModel = SESTO;
+
 	return nErr;
 }
 
+int CEsattoController::getModel()
+{
+    return m_nModel;
+}
 
 int CEsattoController::getTemperature(double &dTemperature, int nTempProbe)
 {
@@ -695,6 +713,97 @@ int CEsattoController::setPosLimit(int nMin, int nMax)
     }
 
     m_nMaxPos = nMax;
+    return nErr;
+}
+
+int CEsattoController::setDirection(int nDir)
+{
+    int nErr = PLUGIN_OK;
+    char szResp[SERIAL_BUFFER_SIZE];
+    json jCmd;
+    json jResp;
+    std::string sDir;
+
+    if(!m_bIsConnected)
+        return ERR_COMMNOLINK;
+
+    switch (nDir) {
+        case NORMAL:
+            sDir="normal";
+            break;
+        case INVERT:
+            sDir="invert";
+            break;
+        default:
+            sDir="normal";
+            break;
+    }
+
+    jCmd["req"]["set"]["MOT1"]["CAL_DIR"]=sDir;
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+    ltime = time(NULL);
+    timestamp = asctime(localtime(&ltime));
+    timestamp[strlen(timestamp) - 1] = 0;
+    fprintf(Logfile, "[%s] [CEsattoController::setDirection] setting direction to %s\n",timestamp, sDir.c_str());
+    fprintf(Logfile, "[%s] [CEsattoController::setDirection] jCmd : %s\n", timestamp, jCmd.dump().c_str());
+    fflush(Logfile);
+#endif
+
+    nErr = ctrlCommand(jCmd.dump(), szResp, SERIAL_BUFFER_SIZE);
+    if(nErr)
+        return nErr;
+    // parse output
+    try {
+        jResp = json::parse(szResp);
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::setDirection] response :\n%s\n", timestamp, jResp.dump(2).c_str());
+        fflush(Logfile);
+#endif
+        if(jResp.at("res").at("set").at("MOT1").at("CAL_DIR") != "done")
+            return ERR_CMDFAILED;
+
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::setDirection] response : %s\n", timestamp, szResp);
+        fflush(Logfile);
+#endif
+    }
+    catch (json::exception& e) {
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::setDirection] json exception : %s - %d\n", timestamp, e.what(), e.id);
+        fflush(Logfile);
+#endif
+        return ERR_CMDFAILED;
+    }
+
+    return nErr;
+
+}
+
+int CEsattoController::getDirection(int &nDir)
+{
+    int nErr = PLUGIN_OK;
+
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+    ltime = time(NULL);
+    timestamp = asctime(localtime(&ltime));
+    timestamp[strlen(timestamp) - 1] = 0;
+    fprintf(Logfile, "[%s] [CEsattoController::getPosition]\n", timestamp);
+    fflush(Logfile);
+#endif
+    nErr = getDeviceStatus();
+    if(nErr)
+        return nErr;
+
+    nDir = m_nDir;
     return nErr;
 }
 

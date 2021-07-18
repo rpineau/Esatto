@@ -38,7 +38,7 @@
 #include "json.hpp"
 using json = nlohmann::json;
 
-// #define PLUGIN_DEBUG 2
+#define PLUGIN_DEBUG 2
 #define DRIVER_VERSION      1.3
 
 
@@ -49,10 +49,12 @@ using json = nlohmann::json;
 
 #define LOG_BUFFER_SIZE 4096
 
-enum PLUGIN_Errors    {PLUGIN_OK = 0, NOT_CONNECTED, ND_CANT_CONNECT, PLUGIN_BAD_CMD_RESPONSE, COMMAND_FAILED, COMMAND_TIMEOUT};
+enum PLUGIN_Errors  {PLUGIN_OK = 0, NOT_CONNECTED, ND_CANT_CONNECT, PLUGIN_BAD_CMD_RESPONSE, COMMAND_FAILED, COMMAND_TIMEOUT};
 enum MotorStatus    {IDLE = 0, MOVING};
 enum WiFiModes      {AP=0, STA};
 enum TempProbe      {EXT_T = 0, NTC_T};
+enum Models         {ESATTO = 0, SESTO};
+enum MotorDir       {NORMAL=0, INVERT};
 
 class CEsattoController
 {
@@ -82,11 +84,16 @@ public:
 
     int         getFirmwareVersion(char *pszVersion, int nStrMaxLen);
 	int         getModelName(char *pszModelName, int nStrMaxLen);
+    int         getModel();
     int         getTemperature(double &dTemperature, int nTempProbe);
     int         getPosition(int &nPosition);
     int         syncMotorPosition(int nPos);
+
     int         getPosLimit(int &nMin, int &nMax);
     int         setPosLimit(int nMin, int nMax);
+
+    int         getDirection(int &nDir);
+    int         setDirection(int nDir);
 
     int         getWiFiConfig(int &nMode, std::string &sSSID, std::string &sPWD);
     int         setWiFiConfig(int nMode, std::string sSSID, std::string sPWD);
@@ -106,12 +113,14 @@ protected:
 	int				m_nMaxPos;
 	int				m_nMinPos;
 	double			m_dExtTemp;
+    int             m_nDir;
 
 	bool            m_bPosLimitEnabled;
     bool            m_bMoving;
 	std::string		m_sAppVer;
 	std::string		m_sWebVer;
 	std::string		m_sModelName;
+    int             m_nModel;
 
 #ifdef PLUGIN_DEBUG
 	std::string m_sLogfilePath;
