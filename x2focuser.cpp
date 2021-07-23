@@ -126,11 +126,12 @@ void X2Focuser::deviceInfoDetailedDescription(BasicStringInterface& str) const
 	char cModelName[SERIAL_BUFFER_SIZE];
 	std::string sDesc;
 	X2Focuser* pMe = (X2Focuser*)this;
-	if(!m_bLinked) {
+    if(!m_bLinked) {
 		str="NA";
 	}
 	else {
-		pMe->m_Esatto.getModelName(cModelName, SERIAL_BUFFER_SIZE);
+        X2MutexLocker ml(pMe->GetMutex());
+        pMe->m_Esatto.getModelName(cModelName, SERIAL_BUFFER_SIZE);
 		sDesc = "PrimaLuce Lab ";
 		sDesc.append(cModelName);
 		str = sDesc.c_str();

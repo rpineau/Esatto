@@ -38,14 +38,14 @@
 #include "json.hpp"
 using json = nlohmann::json;
 
-#define PLUGIN_DEBUG 2
+// #define PLUGIN_DEBUG 2
 #define DRIVER_VERSION      1.3
 
 
 #define SERIAL_BUFFER_SIZE 8192
 #define MAX_TIMEOUT 1000
 #define MAX_READ_WAIT_TIMEOUT 25
-#define NB_RX_WAIT 10
+#define NB_RX_WAIT 30
 
 #define LOG_BUFFER_SIZE 4096
 
