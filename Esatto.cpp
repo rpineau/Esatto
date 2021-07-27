@@ -20,11 +20,13 @@ CEsattoController::CEsattoController()
 	m_nMinPos = 0;
     m_bPosLimitEnabled = 0;
     m_bMoving = false;
+    m_bHalted = false;
 
 	m_sAppVer.clear();
 	m_sWebVer.clear();
 	m_sModelName.clear();
-
+    m_nModel = ESATTO;
+    
 #ifdef PLUGIN_DEBUG
 #if defined(SB_WIN_BUILD)
 	m_sLogfilePath = getenv("HOMEDRIVE");
@@ -44,7 +46,7 @@ CEsattoController::CEsattoController()
 	ltime = time(NULL);
 	timestamp = asctime(localtime(&ltime));
 	timestamp[strlen(timestamp) - 1] = 0;
-	fprintf(Logfile, "[%s] [CEsattoController::CEsattoController] Version %3.2f build 2019_10_15_0925.\n", timestamp, DRIVER_VERSION);
+	fprintf(Logfile, "[%s] [CEsattoController::CEsattoController] Version %3.2f build 2021_07_05_0945.\n", timestamp, DRIVER_VERSION);
 	fprintf(Logfile, "[%s] [CEsattoController] Constructor Called.\n", timestamp);
 	fflush(Logfile);
 #endif
@@ -70,27 +72,23 @@ int CEsattoController::Connect(const char *pszPort)
 	ltime = time(NULL);
 	timestamp = asctime(localtime(&ltime));
 	timestamp[strlen(timestamp) - 1] = 0;
-	fprintf(Logfile, "[%s] CEsattoController::Connect Called %s\n", timestamp, pszPort);
+	fprintf(Logfile, "[%s][CEsattoController::Connect] Called %s\n", timestamp, pszPort);
 	fflush(Logfile);
 #endif
+    m_bIsConnected = false;
 
-    // 9600 8N1
-    nErr = m_pSerx->open(pszPort, 115200, SerXInterface::B_NOPARITY, "-DTR_CONTROL 1");
-    if( nErr == 0)
-        m_bIsConnected = true;
-    else
-        m_bIsConnected = false;
-
-    if(!m_bIsConnected)
+    nErr = m_pSerx->open(pszPort, 115200, SerXInterface::B_NOPARITY);
+    if(nErr)
         return nErr;
 
-    m_pSleeper->sleep(2000);
+    m_bIsConnected = true;
+
 
 #ifdef PLUGIN_DEBUG
 	ltime = time(NULL);
 	timestamp = asctime(localtime(&ltime));
 	timestamp[strlen(timestamp) - 1] = 0;
-	fprintf(Logfile, "[%s] CEsattoController::Connect connected to %s\n", timestamp, pszPort);
+	fprintf(Logfile, "[%s][CEsattoController::Connect] connected to %s\n", timestamp, pszPort);
 	fflush(Logfile);
 #endif
 
@@ -99,7 +97,7 @@ int CEsattoController::Connect(const char *pszPort)
 	ltime = time(NULL);
 	timestamp = asctime(localtime(&ltime));
 	timestamp[strlen(timestamp) - 1] = 0;
-	fprintf(Logfile, "[%s] CEsattoController::Connect getting device status\n", timestamp);
+	fprintf(Logfile, "[%s][CEsattoController::Connect] getting device status\n", timestamp);
 	fflush(Logfile);
 #endif
     nErr = getDeviceStatus();
@@ -109,13 +107,34 @@ int CEsattoController::Connect(const char *pszPort)
 		ltime = time(NULL);
 		timestamp = asctime(localtime(&ltime));
 		timestamp[strlen(timestamp) - 1] = 0;
-		fprintf(Logfile, "[%s] CEsattoController::Connect **** ERROR **** getting device status\n", timestamp);
+		fprintf(Logfile, "[%s][CEsattoController::Connect] **** ERROR **** getting device status\n", timestamp);
 		fflush(Logfile);
 #endif
         return nErr;
     }
+    if(m_nMaxPos == 0) {
+        setPosLimit(0, 1000000);
+    }
 
-	return nErr;
+    // find what settings we're on
+    MotorSettings tmpSettings;
+    getMotorSettings(tmpSettings);
+
+#ifdef PLUGIN_DEBUG
+    ltime = time(NULL);
+    timestamp = asctime(localtime(&ltime));
+    timestamp[strlen(timestamp) - 1] = 0;
+    fprintf(Logfile, "[%s] [CEsattoController::Connect] m_RunSettings.runSpeed      : %d\n", timestamp,  m_RunSettings.runSpeed );
+    fprintf(Logfile, "[%s] [CEsattoController::Connect] m_RunSettings.accSpeed      : %d\n", timestamp,  m_RunSettings.accSpeed );
+    fprintf(Logfile, "[%s] [CEsattoController::Connect] m_RunSettings.decSpeed      : %d\n", timestamp,  m_RunSettings.decSpeed );
+    fprintf(Logfile, "[%s] [CEsattoController::Connect] m_RunSettings.runCurrent    : %d\n", timestamp,  m_RunSettings.runCurrent );
+    fprintf(Logfile, "[%s] [CEsattoController::Connect] m_RunSettings.accCurrent    : %d\n", timestamp,  m_RunSettings.accCurrent );
+    fprintf(Logfile, "[%s] [CEsattoController::Connect] m_RunSettings.decCurrent    : %d\n", timestamp,  m_RunSettings.decCurrent );
+    fprintf(Logfile, "[%s] [CEsattoController::Connect] m_RunSettings.holdCurrent   : %d\n", timestamp,  m_RunSettings.holdCurrent );
+    fflush(Logfile);
+#endif
+
+    return nErr;
 }
 
 void CEsattoController::Disconnect()
@@ -146,8 +165,35 @@ int CEsattoController::haltFocuser()
 	// parse output
 	try {
 		jResp = json::parse(szResp);
-		if(jResp.at("res").at("cmd").at("MOT1").at("MOT_ABORT") == "done")
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::haltFocuser] response :\n%s\n", timestamp, jResp.dump(2).c_str());
+        fflush(Logfile);
+#endif
+        if(jResp.at("res").at("cmd").at("MOT1").at("MOT_ABORT") == "done") {
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+            ltime = time(NULL);
+            timestamp = asctime(localtime(&ltime));
+            timestamp[strlen(timestamp) - 1] = 0;
+            fprintf(Logfile, "[%s] [CEsattoController::haltFocuser] motor has stopped.\n", timestamp);
+            fprintf(Logfile, "[%s] [CEsattoController::haltFocuser] m_nTargetPos = %d.\n", timestamp, m_nTargetPos);
+            fprintf(Logfile, "[%s] [CEsattoController::haltFocuser] m_nCurPos = %d.\n", timestamp, m_nCurPos);
+            fflush(Logfile);
+#endif
 			m_nTargetPos = m_nCurPos;
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+            ltime = time(NULL);
+            timestamp = asctime(localtime(&ltime));
+            timestamp[strlen(timestamp) - 1] = 0;
+            fprintf(Logfile, "[%s] [CEsattoController::haltFocuser] After stop m_nTargetPos = %d.\n", timestamp, m_nTargetPos);
+            fprintf(Logfile, "[%s] [CEsattoController::haltFocuser] After stop m_nCurPos = %d.\n", timestamp, m_nCurPos);
+            fflush(Logfile);
+#endif
+            m_bHalted = true;
+
+        }
 		else
 			return ERR_CMDFAILED;
 	}
@@ -194,6 +240,13 @@ int CEsattoController::gotoPosition(int nPos)
 
 	try {
 		jResp = json::parse(szResp);
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::gotoPosition] response :\n%s\n", timestamp, jResp.dump(2).c_str());
+        fflush(Logfile);
+#endif
 		if(jResp.at("res").at("cmd").at("MOT1").at("GOTO") == "done") {
 			m_nTargetPos = nPos;
 			#ifdef PLUGIN_DEBUG
@@ -220,6 +273,7 @@ int CEsattoController::gotoPosition(int nPos)
         return ERR_CMDFAILED;
     }
 
+    m_bHalted = false;
     return nErr;
 }
 
@@ -253,7 +307,13 @@ int CEsattoController::isGoToComplete(bool &bComplete)
 		return ERR_COMMNOLINK;
 
 	bComplete = false;
-	getDeviceStatus();
+
+    if(m_bHalted) {
+        bComplete = true;
+        return nErr;
+    }
+
+    getDeviceStatus();
 	#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
 		ltime = time(NULL);
 		timestamp = asctime(localtime(&ltime));
@@ -309,20 +369,51 @@ int CEsattoController::getDeviceStatus()
 	// parse output
 	try {
 		jResp = json::parse(szResp);
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] response :\n%s\n", timestamp, jResp.dump(2).c_str());
+        fflush(Logfile);
+#endif
 		m_nCurPos = jResp.at("res").at("get").at("MOT1").at("ABS_POS").get<int>();
 		m_nMaxPos = jResp.at("res").at("get").at("MOT1").at("CAL_MAXPOS").get<int>();
 		m_nMinPos = jResp.at("res").at("get").at("MOT1").at("CAL_MINPOS").get<int>();
 		m_bMoving = (jResp.at("res").at("get").at("MOT1").at("STATUS").at("MST").get<std::string>() != "stop");
-		#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        if(jResp.at("res").at("get").at("MOT1").at("CAL_DIR").get<std::string>().find("normal")!=-1)
+            m_nDir = NORMAL;
+        else if(jResp.at("res").at("get").at("MOT1").at("CAL_DIR").get<std::string>().find("invert")!=-1)
+            m_nDir = INVERT;
+        else
+            m_nDir = NORMAL; // just in case.
+
+        m_RunSettings.runSpeed = jResp.at("res").at("get").at("MOT1").at("FnRUN_SPD").get<int>();
+        m_RunSettings.accSpeed = jResp.at("res").at("get").at("MOT1").at("FnRUN_ACC").get<int>();
+        m_RunSettings.decSpeed = jResp.at("res").at("get").at("MOT1").at("FnRUN_DEC").get<int>();
+        m_RunSettings.runCurrent = jResp.at("res").at("get").at("MOT1").at("FnRUN_CURR_SPD").get<int>();
+        m_RunSettings.accCurrent = jResp.at("res").at("get").at("MOT1").at("FnRUN_CURR_ACC").get<int>();
+        m_RunSettings.decCurrent = jResp.at("res").at("get").at("MOT1").at("FnRUN_CURR_DEC").get<int>();
+        m_RunSettings.holdCurrent = jResp.at("res").at("get").at("MOT1").at("FnRUN_CURR_HOLD").get<int>();
+
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
 			ltime = time(NULL);
 			timestamp = asctime(localtime(&ltime));
 			timestamp[strlen(timestamp) - 1] = 0;
-			fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] m_nCurPos : %d\n", timestamp, m_nCurPos);
-			fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] m_nMaxPos : %d\n", timestamp, m_nMaxPos);
-			fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] m_nMinPos : %d\n", timestamp, m_nMinPos);
-			fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] m_bMoving : %s\n", timestamp, m_bMoving?"True":"False");
-			fflush(Logfile);
-		#endif
+			fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] m_nCurPos       : %d\n", timestamp, m_nCurPos);
+			fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] m_nMaxPos       : %d\n", timestamp, m_nMaxPos);
+			fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] m_nMinPos       : %d\n", timestamp, m_nMinPos);
+			fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] m_bMoving       : %s\n", timestamp, m_bMoving?"True":"False");
+            fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] m_nDir          : %s\n", timestamp, (m_nDir==NORMAL)?"normal":"invert");
+            fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] FnRUN_SPD       : %d\n", timestamp,  m_RunSettings.runSpeed );
+            fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] FnRUN_ACC       : %d\n", timestamp,  m_RunSettings.accSpeed );
+            fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] FnRUN_DEC       : %d\n", timestamp,  m_RunSettings.decSpeed );
+            fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] FnRUN_CURR_SPD  : %d\n", timestamp,  m_RunSettings.runCurrent );
+            fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] FnRUN_CURR_ACC  : %d\n", timestamp,  m_RunSettings.accCurrent );
+            fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] FnRUN_CURR_DEC  : %d\n", timestamp,  m_RunSettings.decCurrent );
+            fprintf(Logfile, "[%s] [CEsattoController::getDeviceStatus] FnRUN_CURR_HOLD : %d\n", timestamp,  m_RunSettings.holdCurrent );
+
+        fflush(Logfile);
+#endif
 	}
     catch (json::exception& e) {
         #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
@@ -368,6 +459,13 @@ int CEsattoController::getFirmwareVersion(char *pszVersion, int nStrMaxLen)
 	// parse output
 	try {
 		jResp = json::parse(szResp);
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::getFirmwareVersion] response :\n%s\n", timestamp, jResp.dump(2).c_str());
+        fflush(Logfile);
+#endif
 		m_sAppVer = jResp.at("res").at("get").at("SWVERS").at("SWAPP").get<std::string>();
 		m_sWebVer = jResp.at("res").at("get").at("SWVERS").at("SWWEB").get<std::string>();
 	}
@@ -427,6 +525,13 @@ int CEsattoController::getModelName(char *pszModelName, int nStrMaxLen)
 	// parse output
 	try {
 		jResp = json::parse(szResp);
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::getModelName] response :\n%s\n", timestamp, jResp.dump(2).c_str());
+        fflush(Logfile);
+#endif
 		m_sModelName = jResp.at("res").at("get").at("MODNAME").get<std::string>();
 	}
     catch (json::exception& e) {
@@ -441,23 +546,41 @@ int CEsattoController::getModelName(char *pszModelName, int nStrMaxLen)
     }
 
     strncpy(pszModelName, m_sModelName.c_str(), nStrMaxLen);
+    if(m_sModelName.find("ESATTO") !=-1)
+        m_nModel = ESATTO;
+    else if(m_sModelName.find("SESTO") !=-1)
+        m_nModel = SESTO;
+
 	return nErr;
 }
 
+int CEsattoController::getModel()
+{
+    return m_nModel;
+}
 
-int CEsattoController::getTemperature(double &dTemperature)
+int CEsattoController::getTemperature(double &dTemperature, int nTempProbe)
 {
     int nErr = PLUGIN_OK;
     char szResp[SERIAL_BUFFER_SIZE];
 	json jCmd;
 	json jResp;
 
-
 	if(!m_bIsConnected)
 		return ERR_COMMNOLINK;
 
+    switch (nTempProbe) {
+        case EXT_T:
+            jCmd["req"]["get"]["EXT_T"]="";
+            break;
+        case NTC_T:
+            jCmd["req"]["get"]["MOT1"]["NTC_T"]="";
+            break;
+        default:
+            jCmd["req"]["get"]["MOT1"]["NTC_T"]="";
+            break;
+    }
 	
-	jCmd["req"]["get"]["EXT_T"]="";
 	#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
 		ltime = time(NULL);
 		timestamp = asctime(localtime(&ltime));
@@ -472,9 +595,25 @@ int CEsattoController::getTemperature(double &dTemperature)
 	// parse output
 	try {
 		jResp = json::parse(szResp);
-		dTemperature = std::stod(jResp.at("res").at("get").at("EXT_T").get<std::string>());
-		if(dTemperature == -127.00f)
-			dTemperature = -100.0f;
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::getTemperature] response :\n%s\n", timestamp, jResp.dump(2).c_str());
+        fflush(Logfile);
+#endif
+        switch (nTempProbe) {
+            case EXT_T:
+                dTemperature = std::stod(jResp.at("res").at("get").at("EXT_T").get<std::string>());
+                break;
+            case NTC_T:
+                dTemperature = std::stod(jResp.at("res").at("get").at("MOT1").at("NTC_T").get<std::string>());
+                break;
+            default:
+                dTemperature = std::stod(jResp.at("res").at("get").at("MOT1").at("NTC_T").get<std::string>());
+                break;
+        }
+
 	}
     catch (json::exception& e) {
         #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
@@ -530,6 +669,203 @@ int CEsattoController::getPosLimit(int &nMin, int &nMax)
     return nErr;
 }
 
+int CEsattoController::setPosLimit(int nMin, int nMax)
+{
+    int nErr = PLUGIN_OK;
+    char szResp[SERIAL_BUFFER_SIZE];
+    json jCmd;
+    json jResp;
+
+    if(!m_bIsConnected)
+        return ERR_COMMNOLINK;
+
+
+    jCmd["req"]["set"]["MOT1"]["CAL_MINPOS"]=nMin;
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+    ltime = time(NULL);
+    timestamp = asctime(localtime(&ltime));
+    timestamp[strlen(timestamp) - 1] = 0;
+    fprintf(Logfile, "[%s] [CEsattoController::setPosLimit] setting new min pos to %d [ %s ]\n",timestamp, nMin, jCmd.dump().c_str());
+    fprintf(Logfile, "[%s] [CEsattoController::setPosLimit] jCmd : %s\n", timestamp, jCmd.dump().c_str());
+    fflush(Logfile);
+#endif
+
+    nErr = ctrlCommand(jCmd.dump(), szResp, SERIAL_BUFFER_SIZE);
+    if(nErr)
+        return nErr;
+    // parse output
+    try {
+        jResp = json::parse(szResp);
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::setPosLimit] response :\n%s\n", timestamp, jResp.dump(2).c_str());
+        fflush(Logfile);
+#endif
+        if(jResp.at("res").at("set").at("MOT1").at("CAL_MINPOS") != "done")
+            return ERR_CMDFAILED;
+
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::setPosLimit] response : %s\n", timestamp, szResp);
+        fflush(Logfile);
+#endif
+    }
+    catch (json::exception& e) {
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::setPosLimit] json exception : %s - %d\n", timestamp, e.what(), e.id);
+        fflush(Logfile);
+#endif
+        return ERR_CMDFAILED;
+    }
+    m_nMinPos = nMin;
+
+    jResp.clear();
+    jCmd["req"]["set"]["MOT1"]["CAL_MAXPOS"]=nMax;
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+    ltime = time(NULL);
+    timestamp = asctime(localtime(&ltime));
+    timestamp[strlen(timestamp) - 1] = 0;
+    fprintf(Logfile, "[%s] [CEsattoController::setPosLimit] setting new max pos to %d [ %s ]\n",timestamp, nMax, jCmd.dump().c_str());
+    fprintf(Logfile, "[%s] [CEsattoController::setPosLimit] jCmd : %s\n", timestamp, jCmd.dump().c_str());
+    fflush(Logfile);
+#endif
+
+    nErr = ctrlCommand(jCmd.dump(), szResp, SERIAL_BUFFER_SIZE);
+    if(nErr)
+        return nErr;
+    // parse output
+    try {
+        jResp = json::parse(szResp);
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::setPosLimit] response :\n%s\n", timestamp, jResp.dump(2).c_str());
+        fflush(Logfile);
+#endif
+        if(jResp.at("res").at("set").at("MOT1").at("CAL_MAXPOS") != "done")
+            return ERR_CMDFAILED;
+
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::setPosLimit] response : %s\n", timestamp, szResp);
+        fflush(Logfile);
+#endif
+    }
+    catch (json::exception& e) {
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::setPosLimit] json exception : %s - %d\n", timestamp, e.what(), e.id);
+        fflush(Logfile);
+#endif
+        return ERR_CMDFAILED;
+    }
+
+    m_nMaxPos = nMax;
+    return nErr;
+}
+
+int CEsattoController::setDirection(int nDir)
+{
+    int nErr = PLUGIN_OK;
+    char szResp[SERIAL_BUFFER_SIZE];
+    json jCmd;
+    json jResp;
+    std::string sDir;
+
+    if(!m_bIsConnected)
+        return ERR_COMMNOLINK;
+
+    switch (nDir) {
+        case NORMAL:
+            sDir="normal";
+            break;
+        case INVERT:
+            sDir="invert";
+            break;
+        default:
+            sDir="normal";
+            break;
+    }
+
+    jCmd["req"]["set"]["MOT1"]["CAL_DIR"]=sDir;
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+    ltime = time(NULL);
+    timestamp = asctime(localtime(&ltime));
+    timestamp[strlen(timestamp) - 1] = 0;
+    fprintf(Logfile, "[%s] [CEsattoController::setDirection] setting direction to %s\n",timestamp, sDir.c_str());
+    fprintf(Logfile, "[%s] [CEsattoController::setDirection] jCmd : %s\n", timestamp, jCmd.dump().c_str());
+    fflush(Logfile);
+#endif
+
+    nErr = ctrlCommand(jCmd.dump(), szResp, SERIAL_BUFFER_SIZE);
+    if(nErr)
+        return nErr;
+    // parse output
+    try {
+        jResp = json::parse(szResp);
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::setDirection] response :\n%s\n", timestamp, jResp.dump(2).c_str());
+        fflush(Logfile);
+#endif
+        if(jResp.at("res").at("set").at("MOT1").at("CAL_DIR") != "done")
+            return ERR_CMDFAILED;
+
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::setDirection] response : %s\n", timestamp, szResp);
+        fflush(Logfile);
+#endif
+    }
+    catch (json::exception& e) {
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::setDirection] json exception : %s - %d\n", timestamp, e.what(), e.id);
+        fflush(Logfile);
+#endif
+        return ERR_CMDFAILED;
+    }
+
+    return nErr;
+
+}
+
+int CEsattoController::getDirection(int &nDir)
+{
+    int nErr = PLUGIN_OK;
+
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+    ltime = time(NULL);
+    timestamp = asctime(localtime(&ltime));
+    timestamp[strlen(timestamp) - 1] = 0;
+    fprintf(Logfile, "[%s] [CEsattoController::getPosition]\n", timestamp);
+    fflush(Logfile);
+#endif
+    nErr = getDeviceStatus();
+    if(nErr)
+        return nErr;
+
+    nDir = m_nDir;
+    return nErr;
+}
 
 int CEsattoController::getPosition(int &nPosition)
 {
@@ -557,17 +893,32 @@ int CEsattoController::getWiFiConfig(int &nMode, std::string &sSSID, std::string
     char szResp[SERIAL_BUFFER_SIZE];
     json jCmd;
     json jResp;
-
+    std::string wifiMode;
 
     if(!m_bIsConnected)
         return ERR_COMMNOLINK;
 
-	jCmd["req"]["get"]["WIFI"]="";
+    // get lan mode  : {"req":{"get":{"LANCFG":""}}}
+    // haven't found how to change mode
+    // and only the password can be changed from my tests.
+    // for now .. nMode = AP always
+    nMode = AP;
+    switch(nMode) {
+        case AP :
+            wifiMode = "WIFIAP";
+            break;
+        case STA :
+            wifiMode = "WIFISTA";
+            break;
+        default:
+            break;
+    }
+	jCmd["req"]["get"][wifiMode]="";
 	#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
 		ltime = time(NULL);
 		timestamp = asctime(localtime(&ltime));
 		timestamp[strlen(timestamp) - 1] = 0;
-		fprintf(Logfile, "[%s] [CEsattoController::getTemperature] jCmd : %s\n", timestamp, jCmd.dump().c_str());
+		fprintf(Logfile, "[%s] [CEsattoController::getWiFiConfig] jCmd : %s\n", timestamp, jCmd.dump().c_str());
 		fflush(Logfile);
 	#endif
 
@@ -577,9 +928,15 @@ int CEsattoController::getWiFiConfig(int &nMode, std::string &sSSID, std::string
     // parse output
     try {
         jResp = json::parse(szResp);
-        nMode = jResp.at("res").at("get").at("WIFI").at("CFG").get<int>();
-        sSSID = jResp.at("res").at("get").at("WIFI").at("SSID").get<std::string>();
-        sPWD = jResp.at("res").at("get").at("WIFI").at("PWD").get<std::string>();
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::getWiFiConfig] response :\n%s\n", timestamp, jResp.dump(2).c_str());
+        fflush(Logfile);
+#endif
+        sSSID = jResp.at("res").at("get").at(wifiMode).at("SSID").get<std::string>();
+        sPWD = jResp.at("res").at("get").at(wifiMode).at("PWD").get<std::string>();
     }
     catch (json::exception& e) {
         #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
@@ -601,14 +958,30 @@ int CEsattoController::setWiFiConfig(int nMode, std::string sSSID, std::string s
     char szResp[SERIAL_BUFFER_SIZE];
     json jCmd;
     json jResp;
-
+    std::string wifiMode;
 
     if(!m_bIsConnected)
         return ERR_COMMNOLINK;
 
-	jCmd["req"]["set"]["WIFI"]["CFG"]=nMode;
-	jCmd["req"]["set"]["WIFI"]["SSID"]=sSSID.c_str();
-	jCmd["req"]["set"]["WIFI"]["PWD"]=sPWD.c_str();
+    // haven't found how to change mode
+    // and only the password can be changed from my tests.
+    // for now .. nMode = AP always
+    nMode = AP;
+
+    switch(nMode) {
+        case AP :
+            wifiMode = "WIFIAP";
+            break;
+        case STA :
+            wifiMode = "WIFISTA";
+            break;
+        default:
+            break;
+    }
+
+
+	// jCmd["req"]["set"][wifiMode]["SSID"]=sSSID.c_str();
+	jCmd["req"]["set"][wifiMode]["PWD"]=sPWD.c_str();
 
     nErr = ctrlCommand(jCmd.dump(), szResp, SERIAL_BUFFER_SIZE);
     if(nErr)
@@ -623,13 +996,20 @@ int CEsattoController::setWiFiConfig(int nMode, std::string sSSID, std::string s
                 fflush(Logfile);
         #endif
         jResp = json::parse(szResp);
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::setWiFiConfig] response :\n%s\n", timestamp, jResp.dump(2).c_str());
+        fflush(Logfile);
+#endif
     }
     catch (json::exception& e) {
         #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
             ltime = time(NULL);
             timestamp = asctime(localtime(&ltime));
             timestamp[strlen(timestamp) - 1] = 0;
-            fprintf(Logfile, "[%s] [CEsattoController::getWiFiConfig] json exception : %s - %d\n", timestamp, e.what(), e.id);
+            fprintf(Logfile, "[%s] [CEsattoController::setWiFiConfig] json exception : %s - %d\n", timestamp, e.what(), e.id);
             fflush(Logfile);
         #endif
         return ERR_CMDFAILED;
@@ -651,7 +1031,6 @@ int CEsattoController::syncMotorPosition(int nPos)
 		return ERR_COMMNOLINK;
 
 	jCmd["req"]["set"]["MOT1"]["ABS_POS"]=nPos;
-	printf("setting new pos to %d [ %s ]\n",nPos, jCmd.dump().c_str());
 	#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
 		ltime = time(NULL);
 		timestamp = asctime(localtime(&ltime));
@@ -667,29 +1046,105 @@ int CEsattoController::syncMotorPosition(int nPos)
 	// parse output
 	try {
 		jResp = json::parse(szResp);
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CEsattoController::syncMotorPosition] response :\n%s\n", timestamp, jResp.dump(2).c_str());
+        fflush(Logfile);
+#endif
 		if(jResp.at("res").at("set").at("MOT1").at("ABS_POS") != "done")
 			return ERR_CMDFAILED;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
-		ltime = time(NULL);
-		timestamp = asctime(localtime(&ltime));
-		timestamp[strlen(timestamp) - 1] = 0;
-		fprintf(Logfile, "[%s] [CEsattoController::getTemperature] response : %s\n", timestamp, szResp);
-		fflush(Logfile);
-#endif
 	}
 	catch (json::exception& e) {
 #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
 		ltime = time(NULL);
 		timestamp = asctime(localtime(&ltime));
 		timestamp[strlen(timestamp) - 1] = 0;
-		fprintf(Logfile, "[%s] [CEsattoController::getTemperature] json exception : %s - %d\n", timestamp, e.what(), e.id);
+		fprintf(Logfile, "[%s] [CEsattoController::syncMotorPosition] json exception : %s - %d\n", timestamp, e.what(), e.id);
 		fflush(Logfile);
 #endif
 		return ERR_CMDFAILED;
 	}
 
 	m_nCurPos = nPos;
+    return nErr;
+}
+
+
+
+int CEsattoController::getMotorSettings(MotorSettings &settings)
+{
+    int nErr = PLUGIN_OK;
+
+    if(!m_bIsConnected)
+        return ERR_COMMNOLINK;
+
+    nErr = getDeviceStatus();
+    if(nErr)
+        return nErr;
+
+    settings.runSpeed =  m_RunSettings.runSpeed;
+    settings.accSpeed =  m_RunSettings.accSpeed;
+    settings.decSpeed =  m_RunSettings.decSpeed;
+    settings.runCurrent =  m_RunSettings.runCurrent;
+    settings.accCurrent =  m_RunSettings.accCurrent;
+    settings.decCurrent =  m_RunSettings.decCurrent;
+    settings.holdCurrent =  m_RunSettings.holdCurrent;
+
+#ifdef PLUGIN_DEBUG
+    ltime = time(NULL);
+    timestamp = asctime(localtime(&ltime));
+    timestamp[strlen(timestamp) - 1] = 0;
+    fprintf(Logfile, "[%s] [CEsattoController::getMotorSettings] settings.runSpeed      : %d\n", timestamp,  settings.runSpeed );
+    fprintf(Logfile, "[%s] [CEsattoController::getMotorSettings] settings.accSpeed      : %d\n", timestamp,  settings.accSpeed );
+    fprintf(Logfile, "[%s] [CEsattoController::getMotorSettings] settings.decSpeed      : %d\n", timestamp,  settings.decSpeed );
+    fprintf(Logfile, "[%s] [CEsattoController::getMotorSettings] settings.runCurrent    : %d\n", timestamp,  settings.runCurrent );
+    fprintf(Logfile, "[%s] [CEsattoController::getMotorSettings] settings.accCurrent    : %d\n", timestamp,  settings.accCurrent );
+    fprintf(Logfile, "[%s] [CEsattoController::getMotorSettings] settings.decCurrent    : %d\n", timestamp,  settings.decCurrent );
+    fprintf(Logfile, "[%s] [CEsattoController::getMotorSettings] settings.holdCurrent   : %d\n", timestamp,  settings.holdCurrent );
+    fflush(Logfile);
+#endif
+
+    return nErr;
+}
+
+int CEsattoController::setMotorSettings(MotorSettings &settings)
+{
+    int nErr = PLUGIN_OK;
+    std::string sPreset;
+    char szResp[SERIAL_BUFFER_SIZE];
+    json jCmd;
+    json jResp;
+
+    if(!m_bIsConnected)
+        return ERR_COMMNOLINK;
+
+    jCmd["req"]["set"]["MOT1"]["FnRUN_SPD"]=settings.runSpeed;
+    jCmd["req"]["set"]["MOT1"]["FnRUN_ACC"]=settings.accSpeed;
+    jCmd["req"]["set"]["MOT1"]["FnRUN_DEC"]=settings.decSpeed;
+    jCmd["req"]["set"]["MOT1"]["FnRUN_CURR_SPD"]=settings.runCurrent;
+    jCmd["req"]["set"]["MOT1"]["FnRUN_CURR_ACC"]=settings.accCurrent;
+    jCmd["req"]["set"]["MOT1"]["FnRUN_CURR_DEC"]=settings.decCurrent;
+    jCmd["req"]["set"]["MOT1"]["FnRUN_CURR_HOLD"]=settings.holdCurrent;
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+    ltime = time(NULL);
+    timestamp = asctime(localtime(&ltime));
+    timestamp[strlen(timestamp) - 1] = 0;
+    fprintf(Logfile, "[%s] [CEsattoController::setMotorSettings] setting custom settings jCmd : %s\n", timestamp, jCmd.dump().c_str());
+    fflush(Logfile);
+#endif
+    nErr = ctrlCommand(jCmd.dump(), szResp, SERIAL_BUFFER_SIZE);
+    if(nErr)
+        return nErr;
+    m_RunSettings.runSpeed =  settings.runSpeed;
+    m_RunSettings.accSpeed =  settings.accSpeed;
+    m_RunSettings.decSpeed =  settings.decSpeed;
+    m_RunSettings.runCurrent =  settings.runCurrent;
+    m_RunSettings.accCurrent =  settings.accCurrent;
+    m_RunSettings.decCurrent =  settings.decCurrent;
+    m_RunSettings.holdCurrent =  settings.holdCurrent;
     return nErr;
 }
 
@@ -768,55 +1223,82 @@ int CEsattoController::ctrlCommand(const std::string sCmd, char *pszResult, int 
     return nErr;
 }
 
-int CEsattoController::readResponse(char *pszRespBuffer, int nBufferLen)
+int CEsattoController::readResponse(char *szRespBuffer, int nBufferLen, int nTimeout)
 {
     int nErr = PLUGIN_OK;
     unsigned long ulBytesRead = 0;
     unsigned long ulTotalBytesRead = 0;
     char *pszBufPtr;
-	
-	if(!m_bIsConnected)
-		return ERR_COMMNOLINK;
+    int nBytesWaiting = 0 ;
+    int nbTimeouts = 0;
 
-    memset(pszRespBuffer, 0, (size_t) nBufferLen);
-    pszBufPtr = pszRespBuffer;
+    memset(szRespBuffer, 0, (size_t) nBufferLen);
+    pszBufPtr = szRespBuffer;
 
     do {
-        nErr = m_pSerx->readFile(pszBufPtr, 1, ulBytesRead, MAX_TIMEOUT);
+        nErr = m_pSerx->bytesWaitingRx(nBytesWaiting);
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 3
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s] [CRTIDome::readResponse] nBytesWaiting = %d\n", timestamp, nBytesWaiting);
+        fprintf(Logfile, "[%s] [CRTIDome::readResponse] nBytesWaiting nErr = %d\n", timestamp, nErr);
+        fflush(Logfile);
+#endif
+        if(!nBytesWaiting) {
+            if(nbTimeouts++ >= NB_RX_WAIT) {
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+                ltime = time(NULL);
+                timestamp = asctime(localtime(&ltime));
+                timestamp[strlen(timestamp) - 1] = 0;
+                fprintf(Logfile, "[%s] [CRTIDome::readResponse] bytesWaitingRx timeout, no data for %d loops\n", timestamp, NB_RX_WAIT);
+                fflush(Logfile);
+#endif
+                nErr = ERR_RXTIMEOUT;
+                break;
+            }
+            m_pSleeper->sleep(MAX_READ_WAIT_TIMEOUT);
+            continue;
+        }
+        nbTimeouts = 0;
+        if(ulTotalBytesRead + nBytesWaiting <= nBufferLen)
+            nErr = m_pSerx->readFile(pszBufPtr, nBytesWaiting, ulBytesRead, nTimeout);
+        else {
+            nErr = ERR_RXTIMEOUT;
+            break; // buffer is full.. there is a problem !!
+        }
         if(nErr) {
 #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
-			ltime = time(NULL);
-			timestamp = asctime(localtime(&ltime));
-			timestamp[strlen(timestamp) - 1] = 0;
-			fprintf(Logfile, "[%s] [CEsattoController::readResponse] readFile Error : %d\n", timestamp, nErr);
-			fflush(Logfile);
+            ltime = time(NULL);
+            timestamp = asctime(localtime(&ltime));
+            timestamp[strlen(timestamp) - 1] = 0;
+            fprintf(Logfile, "[%s] [CRTIDome::readResponse] readFile error.\n", timestamp);
+            fflush(Logfile);
 #endif
             return nErr;
         }
 
-        if (ulBytesRead !=1) {// timeout
+        if (ulBytesRead != nBytesWaiting) { // timeout
 #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
-			ltime = time(NULL);
-			timestamp = asctime(localtime(&ltime));
-			timestamp[strlen(timestamp) - 1] = 0;
-			fprintf(Logfile, "[%s] [CEsattoController::readResponse] readFile Timeout\n", timestamp);
-			fflush(Logfile);
+            ltime = time(NULL);
+            timestamp = asctime(localtime(&ltime));
+            timestamp[strlen(timestamp) - 1] = 0;
+            fprintf(Logfile, "[%s] [CRTIDome::readResponse] readFile Timeout Error\n", timestamp);
+            fprintf(Logfile, "[%s] [CRTIDome::readResponse] readFile nBytesWaiting = %d\n", timestamp, nBytesWaiting);
+            fprintf(Logfile, "[%s] [CRTIDome::readResponse] readFile ulBytesRead = %lu\n", timestamp, ulBytesRead);
+            fflush(Logfile);
 #endif
-            nErr = ERR_NORESPONSE;
-            break;
         }
-        ulTotalBytesRead += ulBytesRead;
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 3
-		ltime = time(NULL);
-		timestamp = asctime(localtime(&ltime));
-		timestamp[strlen(timestamp) - 1] = 0;
-		fprintf(Logfile, "[%s] [CEsattoController::readResponse] ulBytesRead : %lu\n", timestamp, ulBytesRead);
-		fflush(Logfile);
-#endif
-    } while (*pszBufPtr++ != '\n' && ulTotalBytesRead < nBufferLen );
 
-    if(ulTotalBytesRead)
-        *(pszBufPtr-1) = 0; //remove the \n
+        ulTotalBytesRead += ulBytesRead;
+        pszBufPtr+=ulBytesRead;
+    } while (ulTotalBytesRead < nBufferLen  && *(pszBufPtr-1) != '\n');
+
+    if(!ulTotalBytesRead)
+        nErr = COMMAND_TIMEOUT; // we didn't get an answer.. so timeout
+    else
+        *(pszBufPtr-1) = 0; //remove the #
 
     return nErr;
 }
+

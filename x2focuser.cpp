@@ -126,11 +126,12 @@ void X2Focuser::deviceInfoDetailedDescription(BasicStringInterface& str) const
 	char cModelName[SERIAL_BUFFER_SIZE];
 	std::string sDesc;
 	X2Focuser* pMe = (X2Focuser*)this;
-	if(!m_bLinked) {
+    if(!m_bLinked) {
 		str="NA";
 	}
 	else {
-		pMe->m_Esatto.getModelName(cModelName, SERIAL_BUFFER_SIZE);
+        X2MutexLocker ml(pMe->GetMutex());
+        pMe->m_Esatto.getModelName(cModelName, SERIAL_BUFFER_SIZE);
 		sDesc = "PrimaLuce Lab ";
 		sDesc.append(cModelName);
 		str = sDesc.c_str();
@@ -153,7 +154,7 @@ void X2Focuser::deviceInfoFirmwareVersion(BasicStringInterface& str)
 
 void X2Focuser::deviceInfoModel(BasicStringInterface& str)							
 {
-    str="Esatto";
+    deviceInfoNameShort(str);
 }
 
 #pragma mark - LinkInterface
@@ -204,13 +205,18 @@ int	X2Focuser::execModalSettingsDialog(void)
     X2ModalUIUtil uiutil(this, GetTheSkyXFacadeForDrivers());
     X2GUIInterface*					ui = uiutil.X2UI();
     X2GUIExchangeInterface*			dx = NULL;//Comes after ui is loaded
+    char szBuffer[LOG_BUFFER_SIZE];
     bool bPressedOK = false;
 	int nPosition = 0;
+    int minPos = 0;
+    int maxPos = 0;
     mUiEnabled = false;
-    int nWiFiMode;
+    int nWiFiMode = AP;
     std::string sSSID;
     std::string sPWD;
-    
+    MotorSettings motorSettings;
+    int nDir;
+
     if (NULL == ui)
         return ERR_POINTER;
 
@@ -230,12 +236,49 @@ int	X2Focuser::execModalSettingsDialog(void)
         dx->setEnabled("newPos", true);
         dx->setEnabled("pushButton", true);
         dx->setPropertyInt("newPos", "value", nPosition);
+        nErr = m_Esatto.getPosLimit(minPos, maxPos);
+        if(m_Esatto.getModel()==SESTO) {
+            dx->setEnabled("maxPos", true);
+            dx->setEnabled("pushButton_3", true);
+        }
+        else { // don't change the limits on the Esatto.
+            dx->setEnabled("maxPos", false);
+            dx->setEnabled("pushButton_3", false);
+        }
+        dx->setPropertyInt("maxPos", "value", maxPos);
+        snprintf(szBuffer, LOG_BUFFER_SIZE, "Current position : %d", nPosition);
+        dx->setText("curPosLabel",szBuffer);
+        nErr = m_Esatto.getDirection(nDir);
+        switch (nDir) {
+            case NORMAL:
+                dx->setChecked("radioButton", 1);
+                break;
+            case INVERT:
+                dx->setChecked("radioButton_2", 1);
+                break;
+            default:
+                break;
+        }
+
+        m_Esatto.getMotorSettings(motorSettings);
+        dx->setPropertyInt("runSpeed", "value", motorSettings.runSpeed);
+        dx->setPropertyInt("accSpeed", "value", motorSettings.accSpeed);
+        dx->setPropertyInt("decSpeed", "value", motorSettings.decSpeed);
+        dx->setPropertyInt("runCurrent", "value", motorSettings.runCurrent);
+        dx->setPropertyInt("accCurrent", "value", motorSettings.accCurrent);
+        dx->setPropertyInt("decCurrent", "value", motorSettings.decCurrent);
+        dx->setPropertyInt("holdCurrent", "value", motorSettings.holdCurrent);
+
         nErr = m_Esatto.getWiFiConfig(nWiFiMode, sSSID, sPWD);
         if(!nErr) {
-            dx->setCurrentIndex("comboBox", nWiFiMode);
-            dx->setEnabled("comboBox", false); // disbale for now until client mode is added.
             dx->setText("sSSID", sSSID.c_str());
             dx->setText("sPWD", sPWD.c_str());
+            dx->setEnabled("pushButton_2", true);
+        }
+        else {
+            dx->setText("sSSID", "not available");
+            dx->setEnabled("sPWD", false);
+            dx->setEnabled("pushButton_2", false);
         }
     }
     else {
@@ -243,7 +286,13 @@ int	X2Focuser::execModalSettingsDialog(void)
         dx->setEnabled("newPos", false);
         dx->setPropertyInt("newPos", "value", 0);
         dx->setEnabled("pushButton", false);
-        dx->setEnabled("comboBox", false);
+        dx->setEnabled("runSpeed", false);
+        dx->setEnabled("accSpeed", false);
+        dx->setEnabled("decSpeed", false);
+        dx->setEnabled("runCurrent", false);
+        dx->setEnabled("accCurrent", false);
+        dx->setEnabled("decCurrent", false);
+        dx->setEnabled("holdCurrent", false);
         dx->setEnabled("sSSID", false);
         dx->setEnabled("sPWD", false);
         dx->setEnabled("pushButton_2", false);
@@ -257,8 +306,22 @@ int	X2Focuser::execModalSettingsDialog(void)
 
     //Retrieve values from the user interface
     if (bPressedOK) {
+        if(dx->isChecked("radioButton"))
+            m_Esatto.setDirection(NORMAL);
+        else
+            m_Esatto.setDirection(INVERT);
+
+        dx->propertyInt("runSpeed", "value", motorSettings.runSpeed);
+        dx->propertyInt("accSpeed", "value", motorSettings.accSpeed);
+        dx->propertyInt("decSpeed", "value", motorSettings.decSpeed);
+        dx->propertyInt("runCurrent", "value", motorSettings.runCurrent);
+        dx->propertyInt("accCurrent", "value", motorSettings.accCurrent);
+        dx->propertyInt("decCurrent", "value", motorSettings.decCurrent);
+        dx->propertyInt("holdCurrent", "value", motorSettings.holdCurrent);
+        m_Esatto.setMotorSettings(motorSettings);
         nErr = SB_OK;
     }
+
     return nErr;
 }
 
@@ -266,16 +329,31 @@ void X2Focuser::uiEvent(X2GUIExchangeInterface* uiex, const char* pszEvent)
 {
     int nErr = SB_OK;
     int nTmpVal;
-    char szErrorMessage[LOG_BUFFER_SIZE];
+    char szBuffer[LOG_BUFFER_SIZE];
 
+    if(!mUiEnabled)
+        return;
+    
+    if (!strcmp(pszEvent, "on_timer")) {
+        nErr = m_Esatto.getPosition(nTmpVal);
+        if(!nErr) {
+            snprintf(szBuffer, LOG_BUFFER_SIZE, "Current position : %d", nTmpVal);
+            uiex->setText("curPosLabel",szBuffer);
+        }
+    }
     // new position
     if (!strcmp(pszEvent, "on_pushButton_clicked")) {
         uiex->propertyInt("newPos", "value", nTmpVal);
         nErr = m_Esatto.syncMotorPosition(nTmpVal);
         if(nErr) {
-            snprintf(szErrorMessage, LOG_BUFFER_SIZE, "Error setting new position : Error %d", nErr);
-            uiex->messageBox("Set New Position", szErrorMessage);
+            snprintf(szBuffer, LOG_BUFFER_SIZE, "Error setting new position : Error %d", nErr);
+            uiex->messageBox("Set New Position", szBuffer);
             return;
+        }
+        nErr = m_Esatto.getPosition(nTmpVal);
+        if(!nErr) {
+            snprintf(szBuffer, LOG_BUFFER_SIZE, "Current position : %d", nTmpVal);
+            uiex->setText("curPosLabel",szBuffer);
         }
     } else if (!strcmp(pszEvent, "on_pushButton_2_clicked")) {
         std::string sSSID;
@@ -289,11 +367,22 @@ void X2Focuser::uiEvent(X2GUIExchangeInterface* uiex, const char* pszEvent)
         nWifiMode = uiex->currentIndex("comboBox");
         nErr = m_Esatto.setWiFiConfig(nWifiMode, sSSID, sPWD);
         if(nErr){
-            snprintf(szErrorMessage, LOG_BUFFER_SIZE, "Error setting new WiFi parameters : Error %d", nErr);
-            uiex->messageBox("Set WiFi Configuration", szErrorMessage);
+            snprintf(szBuffer, LOG_BUFFER_SIZE, "Error setting new WiFi parameters : Error %d", nErr);
+            uiex->messageBox("Set WiFi Configuration", szBuffer);
             return;
         }
     }
+
+    else if (!strcmp(pszEvent, "on_pushButton_3_clicked")) {
+        uiex->propertyInt("maxPos", "value", nTmpVal);
+        nErr = m_Esatto.setPosLimit(0, nTmpVal);
+        if(nErr) {
+            snprintf(szBuffer, LOG_BUFFER_SIZE, "Error setting max position : Error %d", nErr);
+            uiex->messageBox("Set Max Position", szBuffer);
+            return;
+        }
+    }
+
 }
 
 #pragma mark - FocuserGotoInterface2
@@ -420,7 +509,12 @@ int X2Focuser::focTemperature(double &dTemperature)
     static CStopWatch timer;
 
     if(timer.GetElapsedSeconds() > 30.0f || m_fLastTemp < -99.0f) {
-        nErr = m_Esatto.getTemperature(m_fLastTemp);
+        nErr = m_Esatto.getTemperature(m_fLastTemp, EXT_T);
+        if(m_fLastTemp == -127.00f) {
+            nErr = m_Esatto.getTemperature(m_fLastTemp, NTC_T);
+            if(m_fLastTemp == -127.00f)
+                m_fLastTemp = -100.00f;
+        }
         timer.Reset();
     }
 

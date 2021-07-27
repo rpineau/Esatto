@@ -4,7 +4,8 @@ PACKAGE_NAME="Esatto_X2.pkg"
 BUNDLE_NAME="org.rti-zone.EsattoX2"
 
 if [ ! -z "$app_id_signature" ]; then
-    codesign -s "$app_id_signature" ../build/Release/libEsatto.dylib
+    codesign -f -s "$app_id_signature" --verbose ../build/Release/libEsatto.dylib
+
 fi
 
 mkdir -p ROOT/tmp/Esatto_X2/
