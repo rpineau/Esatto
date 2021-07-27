@@ -214,6 +214,7 @@ int	X2Focuser::execModalSettingsDialog(void)
     int nWiFiMode = AP;
     std::string sSSID;
     std::string sPWD;
+    MotorSettings motorSettings;
     int nDir;
 
     if (NULL == ui)
@@ -258,6 +259,16 @@ int	X2Focuser::execModalSettingsDialog(void)
             default:
                 break;
         }
+
+        m_Esatto.getMotorSettings(motorSettings);
+        dx->setPropertyInt("runSpeed", "value", motorSettings.runSpeed);
+        dx->setPropertyInt("accSpeed", "value", motorSettings.accSpeed);
+        dx->setPropertyInt("decSpeed", "value", motorSettings.decSpeed);
+        dx->setPropertyInt("runCurrent", "value", motorSettings.runCurrent);
+        dx->setPropertyInt("accCurrent", "value", motorSettings.accCurrent);
+        dx->setPropertyInt("decCurrent", "value", motorSettings.decCurrent);
+        dx->setPropertyInt("holdCurrent", "value", motorSettings.holdCurrent);
+
         nErr = m_Esatto.getWiFiConfig(nWiFiMode, sSSID, sPWD);
         if(!nErr) {
             dx->setText("sSSID", sSSID.c_str());
@@ -275,7 +286,13 @@ int	X2Focuser::execModalSettingsDialog(void)
         dx->setEnabled("newPos", false);
         dx->setPropertyInt("newPos", "value", 0);
         dx->setEnabled("pushButton", false);
-        dx->setEnabled("comboBox", false);
+        dx->setEnabled("runSpeed", false);
+        dx->setEnabled("accSpeed", false);
+        dx->setEnabled("decSpeed", false);
+        dx->setEnabled("runCurrent", false);
+        dx->setEnabled("accCurrent", false);
+        dx->setEnabled("decCurrent", false);
+        dx->setEnabled("holdCurrent", false);
         dx->setEnabled("sSSID", false);
         dx->setEnabled("sPWD", false);
         dx->setEnabled("pushButton_2", false);
@@ -293,8 +310,18 @@ int	X2Focuser::execModalSettingsDialog(void)
             m_Esatto.setDirection(NORMAL);
         else
             m_Esatto.setDirection(INVERT);
+
+        dx->propertyInt("runSpeed", "value", motorSettings.runSpeed);
+        dx->propertyInt("accSpeed", "value", motorSettings.accSpeed);
+        dx->propertyInt("decSpeed", "value", motorSettings.decSpeed);
+        dx->propertyInt("runCurrent", "value", motorSettings.runCurrent);
+        dx->propertyInt("accCurrent", "value", motorSettings.accCurrent);
+        dx->propertyInt("decCurrent", "value", motorSettings.decCurrent);
+        dx->propertyInt("holdCurrent", "value", motorSettings.holdCurrent);
+        m_Esatto.setMotorSettings(motorSettings);
         nErr = SB_OK;
     }
+
     return nErr;
 }
 
@@ -304,6 +331,9 @@ void X2Focuser::uiEvent(X2GUIExchangeInterface* uiex, const char* pszEvent)
     int nTmpVal;
     char szBuffer[LOG_BUFFER_SIZE];
 
+    if(!mUiEnabled)
+        return;
+    
     if (!strcmp(pszEvent, "on_timer")) {
         nErr = m_Esatto.getPosition(nTmpVal);
         if(!nErr) {

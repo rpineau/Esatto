@@ -49,12 +49,25 @@ using json = nlohmann::json;
 
 #define LOG_BUFFER_SIZE 4096
 
+#define NB_MOTOR_SETTINGS 4
+
 enum PLUGIN_Errors  {PLUGIN_OK = 0, NOT_CONNECTED, ND_CANT_CONNECT, PLUGIN_BAD_CMD_RESPONSE, COMMAND_FAILED, COMMAND_TIMEOUT};
 enum MotorStatus    {IDLE = 0, MOVING};
 enum WiFiModes      {AP=0, STA};
 enum TempProbe      {EXT_T = 0, NTC_T};
 enum Models         {ESATTO = 0, SESTO};
 enum MotorDir       {NORMAL=0, INVERT};
+
+typedef struct motorSettings {
+    int runSpeed;
+    int accSpeed;
+    int decSpeed;
+    int runCurrent;
+    int accCurrent;
+    int decCurrent;
+    int holdCurrent;
+} MotorSettings;
+
 
 class CEsattoController
 {
@@ -98,6 +111,8 @@ public:
     int         getWiFiConfig(int &nMode, std::string &sSSID, std::string &sPWD);
     int         setWiFiConfig(int nMode, std::string sSSID, std::string sPWD);
 
+    int         getMotorSettings(MotorSettings &settings);
+    int         setMotorSettings(MotorSettings &settings);
 protected:
 
 	int             ctrlCommand(const std::string sCmd, char *pszResult, int nResultMaxLen);
@@ -117,10 +132,14 @@ protected:
 
 	bool            m_bPosLimitEnabled;
     bool            m_bMoving;
+    bool            m_bHalted;
+
 	std::string		m_sAppVer;
 	std::string		m_sWebVer;
 	std::string		m_sModelName;
     int             m_nModel;
+
+    MotorSettings   m_RunSettings;
 
 #ifdef PLUGIN_DEBUG
 	std::string m_sLogfilePath;
