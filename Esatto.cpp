@@ -64,7 +64,8 @@ CEsattoController::~CEsattoController()
 int CEsattoController::Connect(const char *pszPort)
 {
     int nErr = PLUGIN_OK;
-
+    char szModeName[LOG_BUFFER_SIZE];
+    
     if(!m_pSerx)
         return ERR_COMMNOLINK;
 
@@ -100,6 +101,19 @@ int CEsattoController::Connect(const char *pszPort)
 	fprintf(Logfile, "[%s][CEsattoController::Connect] getting device status\n", timestamp);
 	fflush(Logfile);
 #endif
+    nErr = getModelName(szModeName, LOG_BUFFER_SIZE);
+    if(nErr) {
+        m_bIsConnected = false;
+#ifdef PLUGIN_DEBUG
+        ltime = time(NULL);
+        timestamp = asctime(localtime(&ltime));
+        timestamp[strlen(timestamp) - 1] = 0;
+        fprintf(Logfile, "[%s][CEsattoController::Connect] **** ERROR **** getting device model names\n", timestamp);
+        fflush(Logfile);
+#endif
+        return nErr;
+    }
+    
     nErr = getDeviceStatus();
     if(nErr) {
 		m_bIsConnected = false;
@@ -387,14 +401,15 @@ int CEsattoController::getDeviceStatus()
         else
             m_nDir = NORMAL; // just in case.
 
-        m_RunSettings.runSpeed = jResp.at("res").at("get").at("MOT1").at("FnRUN_SPD").get<int>();
-        m_RunSettings.accSpeed = jResp.at("res").at("get").at("MOT1").at("FnRUN_ACC").get<int>();
-        m_RunSettings.decSpeed = jResp.at("res").at("get").at("MOT1").at("FnRUN_DEC").get<int>();
-        m_RunSettings.runCurrent = jResp.at("res").at("get").at("MOT1").at("FnRUN_CURR_SPD").get<int>();
-        m_RunSettings.accCurrent = jResp.at("res").at("get").at("MOT1").at("FnRUN_CURR_ACC").get<int>();
-        m_RunSettings.decCurrent = jResp.at("res").at("get").at("MOT1").at("FnRUN_CURR_DEC").get<int>();
-        m_RunSettings.holdCurrent = jResp.at("res").at("get").at("MOT1").at("FnRUN_CURR_HOLD").get<int>();
-
+        if(m_nModel == SESTO) {
+            m_RunSettings.runSpeed = jResp.at("res").at("get").at("MOT1").at("FnRUN_SPD").get<int>();
+            m_RunSettings.accSpeed = jResp.at("res").at("get").at("MOT1").at("FnRUN_ACC").get<int>();
+            m_RunSettings.decSpeed = jResp.at("res").at("get").at("MOT1").at("FnRUN_DEC").get<int>();
+            m_RunSettings.runCurrent = jResp.at("res").at("get").at("MOT1").at("FnRUN_CURR_SPD").get<int>();
+            m_RunSettings.accCurrent = jResp.at("res").at("get").at("MOT1").at("FnRUN_CURR_ACC").get<int>();
+            m_RunSettings.decCurrent = jResp.at("res").at("get").at("MOT1").at("FnRUN_CURR_DEC").get<int>();
+            m_RunSettings.holdCurrent = jResp.at("res").at("get").at("MOT1").at("FnRUN_CURR_HOLD").get<int>();
+        }
 #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
 			ltime = time(NULL);
 			timestamp = asctime(localtime(&ltime));
