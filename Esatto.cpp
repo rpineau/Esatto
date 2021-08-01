@@ -495,7 +495,7 @@ int CEsattoController::getFirmwareVersion(char *pszVersion, int nStrMaxLen)
         return ERR_CMDFAILED;
     }
 
-    strncpy(pszVersion, (m_sAppVer + " " + m_sWebVer).c_str(), nStrMaxLen);
+    strncpy(pszVersion, (m_sAppVer + " / " + m_sWebVer).c_str(), nStrMaxLen);
 #ifdef PLUGIN_DEBUG
 	ltime = time(NULL);
 	timestamp = asctime(localtime(&ltime));
