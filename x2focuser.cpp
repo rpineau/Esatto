@@ -493,7 +493,6 @@ int	X2Focuser::amountNameFromIndexFocGoto(const int& nZeroBasedIndex, BasicStrin
 {
 	switch (nZeroBasedIndex)
 	{
-		default:
 		case 0: strDisplayName="5 steps"; nAmount=5;break;
 		case 1: strDisplayName="10 steps"; nAmount=10;break;
 		case 2: strDisplayName="20 steps"; nAmount=20;break;
@@ -503,6 +502,7 @@ int	X2Focuser::amountNameFromIndexFocGoto(const int& nZeroBasedIndex, BasicStrin
         case 6: strDisplayName="250 steps"; nAmount=250;break;
         case 7: strDisplayName="500 steps"; nAmount=500;break;
         case 8: strDisplayName="1000 steps"; nAmount=1000;break;
+        default: strDisplayName="50 steps"; nAmount=50;break;
 	}
 	return SB_OK;
 }
