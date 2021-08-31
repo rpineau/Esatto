@@ -39,7 +39,7 @@
 using json = nlohmann::json;
 
 // #define PLUGIN_DEBUG 2
-#define DRIVER_VERSION      1.31
+#define DRIVER_VERSION      1.35
 
 
 #define SERIAL_BUFFER_SIZE 8192
