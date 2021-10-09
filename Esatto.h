@@ -25,6 +25,8 @@
 #include <vector>
 #include <sstream>
 #include <iostream>
+#include <chrono>
+#include <thread>
 
 #include <exception>
 #include <typeinfo>
@@ -32,20 +34,21 @@
 
 #include "../../licensedinterfaces/sberrorx.h"
 #include "../../licensedinterfaces/serxinterface.h"
-#include "../../licensedinterfaces/loggerinterface.h"
-#include "../../licensedinterfaces/sleeperinterface.h"
 
+#include "StopWatch.h"
 #include "json.hpp"
 using json = nlohmann::json;
 
 // #define PLUGIN_DEBUG 2
-#define DRIVER_VERSION      1.35
+#define DRIVER_VERSION      1.45
 
 
 #define SERIAL_BUFFER_SIZE 8192
-#define MAX_TIMEOUT 1000
+#define MAX_TIMEOUT 1500
 #define MAX_READ_WAIT_TIMEOUT 25
 #define NB_RX_WAIT 30
+
+#define INTER_COMMAND_WAIT    100
 
 #define LOG_BUFFER_SIZE 4096
 
@@ -80,7 +83,6 @@ public:
     bool        IsConnected(void) { return m_bIsConnected; };
 
     void        SetSerxPointer(SerXInterface *p) { m_pSerx = p; };
-    void        setSleeper(SleeperInterface *pSleeper) { m_pSleeper = pSleeper; };
 
     // move commands
     int         haltFocuser();
@@ -118,7 +120,6 @@ protected:
 	int             ctrlCommand(const std::string sCmd, char *pszResult, int nResultMaxLen);
     int             readResponse(char *respBuffer, int nBufferLen, int nTimeout = MAX_TIMEOUT);
     SerXInterface   *m_pSerx;
-    SleeperInterface    *m_pSleeper;
 
     bool            m_bDebugLog;
     bool            m_bIsConnected;
@@ -140,6 +141,8 @@ protected:
     int             m_nModel;
 
     MotorSettings   m_RunSettings;
+
+    CStopWatch        m_cmdDelayTimer;
 
 #ifdef PLUGIN_DEBUG
 	std::string m_sLogfilePath;

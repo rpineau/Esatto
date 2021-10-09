@@ -40,7 +40,6 @@ X2Focuser::X2Focuser(const char* pszDisplayName,
     if (m_pIniUtil) {
     }
 	m_Esatto.SetSerxPointer(m_pSerX);
-    m_Esatto.setSleeper(m_pSleeper);
 }
 
 X2Focuser::~X2Focuser()

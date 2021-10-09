@@ -83,6 +83,7 @@ int CEsattoController::Connect(const char *pszPort)
         return nErr;
 
     m_bIsConnected = true;
+    m_cmdDelayTimer.Reset();
 
 
 #ifdef PLUGIN_DEBUG
@@ -1171,11 +1172,20 @@ int CEsattoController::ctrlCommand(const std::string sCmd, char *pszResult, int 
     int nErr = PLUGIN_OK;
     char szResp[SERIAL_BUFFER_SIZE];
     unsigned long  ulBytesWrite;
-	
+    int dDelayMs;
+
 	if(!m_bIsConnected)
 		return ERR_COMMNOLINK;
 
     m_pSerx->purgeTxRx();
+    // do we need to wait ?
+    if(m_cmdDelayTimer.GetElapsedSeconds()<INTER_COMMAND_WAIT) {
+        dDelayMs = INTER_COMMAND_WAIT - int(m_cmdDelayTimer.GetElapsedSeconds() *1000);
+        if(dDelayMs>0)
+            std::this_thread::sleep_for(std::chrono::milliseconds(dDelayMs)); // need to give time to the mount to process the command
+    }
+
+
 #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
 	ltime = time(NULL);
 	timestamp = asctime(localtime(&ltime));
@@ -1186,6 +1196,7 @@ int CEsattoController::ctrlCommand(const std::string sCmd, char *pszResult, int 
 
     nErr = m_pSerx->writeFile((void *) (sCmd.c_str()) , sCmd.size(), ulBytesWrite);
     m_pSerx->flushTx();
+    m_cmdDelayTimer.Reset();
 
     if(nErr){
 #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
@@ -1272,7 +1283,7 @@ int CEsattoController::readResponse(char *szRespBuffer, int nBufferLen, int nTim
                 nErr = ERR_RXTIMEOUT;
                 break;
             }
-            m_pSleeper->sleep(MAX_READ_WAIT_TIMEOUT);
+            std::this_thread::sleep_for(std::chrono::milliseconds(MAX_READ_WAIT_TIMEOUT));
             continue;
         }
         nbTimeouts = 0;

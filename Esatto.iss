@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Esatto X2 Driver"
-#define MyAppVersion "1.35"
+#define MyAppVersion "1.45"
 #define MyAppPublisher "RTI-Zone"
 #define MyAppURL "https://rti-zone.org"
 
@@ -49,9 +49,9 @@ Name: "{app}\Plugins64\FocuserPlugins";
 Source: "focuserlist Esatto.txt";                   DestDir: "{app}\Miscellaneous Files"; Flags: ignoreversion
 Source: "focuserlist Esatto.txt";                   DestDir: "{app}\Miscellaneous Files"; DestName: "focuserlist64 Esatto.txt";Flags: ignoreversion
 ;32 bits
-Source: "libEsatto\Win32\Release\libEsatto.dll";    DestDir: "{app}\Plugins\FocuserPlugins"; Flags: ignoreversion
-Source: "Esatto.ui";                                DestDir: "{app}\Plugins\FocuserPlugins"; Flags: ignoreversion
-Source: "PrimaLuceLab.png";                         DestDir: "{app}\Plugins\FocuserPlugins"; Flags: ignoreversion
+Source: "libEsatto\Win32\Release\libEsatto.dll";    DestDir: "{app}\Plugins\FocuserPlugins"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{app}\Plugins64\FocuserPlugins'))
+Source: "Esatto.ui";                                DestDir: "{app}\Plugins\FocuserPlugins"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{app}\Plugins64\FocuserPlugins'))
+Source: "PrimaLuceLab.png";                         DestDir: "{app}\Plugins\FocuserPlugins"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{app}\Plugins64\FocuserPlugins'))
 ; 64 bits
 Source: "libEsatto\x64\Release\libEsatto.dll";      DestDir: "{app}\Plugins64\FocuserPlugins"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{app}\Plugins64\FocuserPlugins'))
 Source: "Esatto.ui";                                DestDir: "{app}\Plugins64\FocuserPlugins"; Flags: ignoreversion; Check: DirExists(ExpandConstant('{app}\Plugins64\FocuserPlugins'))
@@ -69,10 +69,10 @@ var
 function TSXInstallDir(Param: String) : String;
 begin
   LoadResult := LoadStringFromFile(ExpandConstant('{userdocs}') + '\Software Bisque\TheSkyX Professional Edition\TheSkyXInstallPath.txt', Location);
-  { Check that could open the file}
   if not LoadResult then
-    RaiseException('Unable to find the installation path for The Sky X');
-  {Check that the file exists}
+    LoadResult := LoadStringFromFile(ExpandConstant('{userdocs}') + '\Software Bisque\TheSky Professional Edition 64\TheSkyXInstallPath.txt', Location);
+    if not LoadResult then
+      RaiseException('Unable to find the installation path for The Sky X');
   if not DirExists(Location) then
     RaiseException('The SkyX installation directory ' + Location + ' does not exist');
   Result := Location;
