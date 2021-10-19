@@ -98,7 +98,7 @@ void X2Focuser::driverInfoDetailedInfo(BasicStringInterface& str) const
 
 double X2Focuser::driverInfoVersion(void) const							
 {
-	return DRIVER_VERSION;
+	return PLUGIN_VERSION;
 }
 
 void X2Focuser::deviceInfoNameShort(BasicStringInterface& str) const
@@ -468,7 +468,7 @@ int	X2Focuser::isCompleteFocGoto(bool& bComplete) const
     X2Focuser* pMe = (X2Focuser*)this;
     X2MutexLocker ml(pMe->GetMutex());
 	nErr = pMe->m_Esatto.isGoToComplete(bComplete);
-
+    
     return nErr;
 }
 
@@ -515,6 +515,7 @@ int	X2Focuser::amountIndexFocGoto(void)
 int X2Focuser::focTemperature(double &dTemperature)
 {
     int nErr = SB_OK;
+    double dSavedTemp;
 
     if(!m_bLinked) {
         dTemperature = -100.0;
@@ -525,10 +526,14 @@ int X2Focuser::focTemperature(double &dTemperature)
     // Taken from Richard's Robofocus plugin code.
     // this prevent us from asking the temperature too often
     static CStopWatch timer;
-
     if(timer.GetElapsedSeconds() > 30.0f || m_fLastTemp < -99.0f) {
+        dSavedTemp = m_fLastTemp;
         nErr = m_Esatto.getTemperature(m_fLastTemp, EXT_T);
-        if(m_fLastTemp == -127.00f) {
+        if(nErr) {
+            m_fLastTemp = dSavedTemp;
+            nErr = SB_OK;
+        }
+        else if(m_fLastTemp == -127.00f) {
             nErr = m_Esatto.getTemperature(m_fLastTemp, NTC_T);
             if(m_fLastTemp == -127.00f)
                 m_fLastTemp = -100.00f;

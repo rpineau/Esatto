@@ -27,10 +27,14 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
-
 #include <exception>
 #include <typeinfo>
 #include <stdexcept>
+#include <chrono>
+#include <mutex>
+#include <iomanip>
+#include <fstream>
+
 
 #include "../../licensedinterfaces/sberrorx.h"
 #include "../../licensedinterfaces/serxinterface.h"
@@ -39,8 +43,8 @@
 #include "json.hpp"
 using json = nlohmann::json;
 
-// #define PLUGIN_DEBUG 2
-#define DRIVER_VERSION      1.45
+#define PLUGIN_DEBUG 1
+#define PLUGIN_VERSION      1.46
 
 
 #define SERIAL_BUFFER_SIZE 8192
@@ -119,6 +123,8 @@ protected:
 
 	int             ctrlCommand(const std::string sCmd, char *pszResult, int nResultMaxLen);
     int             readResponse(char *respBuffer, int nBufferLen, int nTimeout = MAX_TIMEOUT);
+    void            interCommandPause();
+
     SerXInterface   *m_pSerx;
 
     bool            m_bDebugLog;
@@ -145,12 +151,13 @@ protected:
     CStopWatch        m_cmdDelayTimer;
 
 #ifdef PLUGIN_DEBUG
-	std::string m_sLogfilePath;
-	// timestamp for logs
-	char *timestamp;
-	time_t ltime;
-	FILE *Logfile;	  // LogFile
+    // timestamp for logs
+    const std::string getTimeStamp();
+    std::ofstream m_sLogFile;
+    std::string m_sPlatform;
+    std::string m_sLogfilePath;
 #endif
+
 
 };
 
