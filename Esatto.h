@@ -25,33 +25,40 @@
 #include <vector>
 #include <sstream>
 #include <iostream>
-
+#include <chrono>
+#include <thread>
 #include <exception>
 #include <typeinfo>
 #include <stdexcept>
+#include <chrono>
+#include <mutex>
+#include <iomanip>
+#include <fstream>
+
 
 #include "../../licensedinterfaces/sberrorx.h"
 #include "../../licensedinterfaces/serxinterface.h"
-#include "../../licensedinterfaces/loggerinterface.h"
-#include "../../licensedinterfaces/sleeperinterface.h"
 
+#include "StopWatch.h"
 #include "json.hpp"
 using json = nlohmann::json;
 
-// #define PLUGIN_DEBUG 2
-#define DRIVER_VERSION      1.35
+// #define PLUGIN_DEBUG 1
+#define PLUGIN_VERSION      1.46
 
 
 #define SERIAL_BUFFER_SIZE 8192
-#define MAX_TIMEOUT 1000
+#define MAX_TIMEOUT 1500
 #define MAX_READ_WAIT_TIMEOUT 25
 #define NB_RX_WAIT 30
+
+#define INTER_COMMAND_WAIT    100
 
 #define LOG_BUFFER_SIZE 4096
 
 #define NB_MOTOR_SETTINGS 4
 
-enum PLUGIN_Errors  {PLUGIN_OK = 0, NOT_CONNECTED, ND_CANT_CONNECT, PLUGIN_BAD_CMD_RESPONSE, COMMAND_FAILED, COMMAND_TIMEOUT};
+enum PLUGIN_Errors  {PLUGIN_OK = 0, NOT_CONNECTED, PLUGIN_CANT_CONNECT, PLUGIN_BAD_CMD_RESPONSE, COMMAND_FAILED, COMMAND_TIMEOUT};
 enum MotorStatus    {IDLE = 0, MOVING};
 enum WiFiModes      {AP=0, STA};
 enum TempProbe      {EXT_T = 0, NTC_T};
@@ -80,7 +87,6 @@ public:
     bool        IsConnected(void) { return m_bIsConnected; };
 
     void        SetSerxPointer(SerXInterface *p) { m_pSerx = p; };
-    void        setSleeper(SleeperInterface *pSleeper) { m_pSleeper = pSleeper; };
 
     // move commands
     int         haltFocuser();
@@ -95,8 +101,8 @@ public:
 
     int         getDeviceStatus();
 
-    int         getFirmwareVersion(char *pszVersion, int nStrMaxLen);
-	int         getModelName(char *pszModelName, int nStrMaxLen);
+    int         getFirmwareVersion(std::string &sVersion);
+	int         getModelName(std::string &sModelName);
     int         getModel();
     int         getTemperature(double &dTemperature, int nTempProbe);
     int         getPosition(int &nPosition);
@@ -115,10 +121,11 @@ public:
     int         setMotorSettings(MotorSettings &settings);
 protected:
 
-	int             ctrlCommand(const std::string sCmd, char *pszResult, int nResultMaxLen);
-    int             readResponse(char *respBuffer, int nBufferLen, int nTimeout = MAX_TIMEOUT);
+    int             ctrlCommand(const std::string sCmd, std::string &sResult, int nTimeout = MAX_TIMEOUT);
+    int             readResponse(std::string &sResp, int nTimeout = MAX_TIMEOUT);
+    void            interCommandPause();
+
     SerXInterface   *m_pSerx;
-    SleeperInterface    *m_pSleeper;
 
     bool            m_bDebugLog;
     bool            m_bIsConnected;
@@ -141,13 +148,16 @@ protected:
 
     MotorSettings   m_RunSettings;
 
+    CStopWatch        m_cmdDelayTimer;
+
 #ifdef PLUGIN_DEBUG
-	std::string m_sLogfilePath;
-	// timestamp for logs
-	char *timestamp;
-	time_t ltime;
-	FILE *Logfile;	  // LogFile
+    // timestamp for logs
+    const std::string getTimeStamp();
+    std::ofstream m_sLogFile;
+    std::string m_sPlatform;
+    std::string m_sLogfilePath;
 #endif
+
 
 };
 
