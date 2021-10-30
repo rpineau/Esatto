@@ -43,7 +43,7 @@
 #include "json.hpp"
 using json = nlohmann::json;
 
-#define PLUGIN_DEBUG 1
+// #define PLUGIN_DEBUG 1
 #define PLUGIN_VERSION      1.46
 
 
@@ -58,7 +58,7 @@ using json = nlohmann::json;
 
 #define NB_MOTOR_SETTINGS 4
 
-enum PLUGIN_Errors  {PLUGIN_OK = 0, NOT_CONNECTED, ND_CANT_CONNECT, PLUGIN_BAD_CMD_RESPONSE, COMMAND_FAILED, COMMAND_TIMEOUT};
+enum PLUGIN_Errors  {PLUGIN_OK = 0, NOT_CONNECTED, PLUGIN_CANT_CONNECT, PLUGIN_BAD_CMD_RESPONSE, COMMAND_FAILED, COMMAND_TIMEOUT};
 enum MotorStatus    {IDLE = 0, MOVING};
 enum WiFiModes      {AP=0, STA};
 enum TempProbe      {EXT_T = 0, NTC_T};
@@ -101,8 +101,8 @@ public:
 
     int         getDeviceStatus();
 
-    int         getFirmwareVersion(char *pszVersion, int nStrMaxLen);
-	int         getModelName(char *pszModelName, int nStrMaxLen);
+    int         getFirmwareVersion(std::string &sVersion);
+	int         getModelName(std::string &sModelName);
     int         getModel();
     int         getTemperature(double &dTemperature, int nTempProbe);
     int         getPosition(int &nPosition);
@@ -121,8 +121,8 @@ public:
     int         setMotorSettings(MotorSettings &settings);
 protected:
 
-	int             ctrlCommand(const std::string sCmd, char *pszResult, int nResultMaxLen);
-    int             readResponse(char *respBuffer, int nBufferLen, int nTimeout = MAX_TIMEOUT);
+    int             ctrlCommand(const std::string sCmd, std::string &sResult, int nTimeout = MAX_TIMEOUT);
+    int             readResponse(std::string &sResp, int nTimeout = MAX_TIMEOUT);
     void            interCommandPause();
 
     SerXInterface   *m_pSerx;

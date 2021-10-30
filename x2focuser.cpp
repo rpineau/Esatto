@@ -103,15 +103,15 @@ double X2Focuser::driverInfoVersion(void) const
 
 void X2Focuser::deviceInfoNameShort(BasicStringInterface& str) const
 {
-	char cModelName[SERIAL_BUFFER_SIZE];
+    std::string sModelName;
 	X2Focuser* pMe = (X2Focuser*)this;
 	if(!m_bLinked) {
 		str="NA";
 	}
 	else {
 		X2MutexLocker ml(pMe->GetMutex());
-		pMe->m_Esatto.getModelName(cModelName, SERIAL_BUFFER_SIZE);
-		str = cModelName;
+		pMe->m_Esatto.getModelName(sModelName);
+		str = sModelName.c_str();
 	}
 }
 
@@ -122,7 +122,7 @@ void X2Focuser::deviceInfoNameLong(BasicStringInterface& str) const
 
 void X2Focuser::deviceInfoDetailedDescription(BasicStringInterface& str) const		
 {
-	char cModelName[SERIAL_BUFFER_SIZE];
+    std::string sModelName;
 	std::string sDesc;
 	X2Focuser* pMe = (X2Focuser*)this;
     if(!m_bLinked) {
@@ -130,9 +130,9 @@ void X2Focuser::deviceInfoDetailedDescription(BasicStringInterface& str) const
 	}
 	else {
         X2MutexLocker ml(pMe->GetMutex());
-        pMe->m_Esatto.getModelName(cModelName, SERIAL_BUFFER_SIZE);
+        pMe->m_Esatto.getModelName(sModelName);
 		sDesc = "PrimaLuce Lab ";
-		sDesc.append(cModelName);
+		sDesc.append(sModelName);
 		str = sDesc.c_str();
 	}
 }
@@ -145,9 +145,9 @@ void X2Focuser::deviceInfoFirmwareVersion(BasicStringInterface& str)
     else {
         X2MutexLocker ml(GetMutex());
         // get firmware version
-        char cFirmware[SERIAL_BUFFER_SIZE];
-        m_Esatto.getFirmwareVersion(cFirmware, SERIAL_BUFFER_SIZE);
-        str = cFirmware;
+        std::string sFirmware;
+        m_Esatto.getFirmwareVersion(sFirmware);
+        str = sFirmware.c_str();
     }
 }
 
@@ -298,6 +298,8 @@ int	X2Focuser::execModalSettingsDialog(void)
         dx->setEnabled("newPos", false);
         dx->setPropertyInt("newPos", "value", 0);
         dx->setEnabled("pushButton", false);
+        dx->setEnabled("radioButton", false);
+        dx->setEnabled("radioButton_2", false);
         dx->setEnabled("runSpeed", false);
         dx->setEnabled("accSpeed", false);
         dx->setEnabled("decSpeed", false);
@@ -308,6 +310,9 @@ int	X2Focuser::execModalSettingsDialog(void)
         dx->setEnabled("sSSID", false);
         dx->setEnabled("sPWD", false);
         dx->setEnabled("pushButton_2", false);
+        dx->setEnabled("maxPos", false);
+        dx->setEnabled("pushButton_3", false);
+        dx->setText("curPosLabel","");
     }
 
     //Display the user interface
