@@ -271,6 +271,7 @@ int	X2Focuser::execModalSettingsDialog(void)
             dx->setPropertyInt("accCurrent", "value", motorSettings.accCurrent);
             dx->setPropertyInt("decCurrent", "value", motorSettings.decCurrent);
             dx->setPropertyInt("holdCurrent", "value", motorSettings.holdCurrent);
+            dx->setPropertyInt("backlash", "value", motorSettings.backlash);
         }
         else {
             dx->setEnabled("runSpeed", false);
@@ -280,7 +281,10 @@ int	X2Focuser::execModalSettingsDialog(void)
             dx->setEnabled("accCurrent", false);
             dx->setEnabled("decCurrent", false);
             dx->setEnabled("holdCurrent", false);
+            dx->setEnabled("backlash", false);
         }
+
+
         nErr = m_Esatto.getWiFiConfig(nWiFiMode, sSSID, sPWD);
         if(!nErr) {
             dx->setText("sSSID", sSSID.c_str());
@@ -307,6 +311,7 @@ int	X2Focuser::execModalSettingsDialog(void)
         dx->setEnabled("accCurrent", false);
         dx->setEnabled("decCurrent", false);
         dx->setEnabled("holdCurrent", false);
+        dx->setEnabled("backlash", false);
         dx->setEnabled("sSSID", false);
         dx->setEnabled("sPWD", false);
         dx->setEnabled("pushButton_2", false);
@@ -335,8 +340,10 @@ int	X2Focuser::execModalSettingsDialog(void)
             dx->propertyInt("accCurrent", "value", motorSettings.accCurrent);
             dx->propertyInt("decCurrent", "value", motorSettings.decCurrent);
             dx->propertyInt("holdCurrent", "value", motorSettings.holdCurrent);
+            dx->propertyInt("backlash", "value", motorSettings.backlash);
             m_Esatto.setMotorSettings(motorSettings);
         }
+
         nErr = SB_OK;
     }
 
