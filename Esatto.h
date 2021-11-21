@@ -43,8 +43,8 @@
 #include "json.hpp"
 using json = nlohmann::json;
 
-// #define PLUGIN_DEBUG 1
-#define PLUGIN_VERSION      1.46
+// #define PLUGIN_DEBUG 2
+#define PLUGIN_VERSION      1.48
 
 
 #define SERIAL_BUFFER_SIZE 8192
@@ -73,6 +73,7 @@ typedef struct motorSettings {
     int accCurrent;
     int decCurrent;
     int holdCurrent;
+    int backlash;
 } MotorSettings;
 
 
@@ -119,6 +120,12 @@ public:
 
     int         getMotorSettings(MotorSettings &settings);
     int         setMotorSettings(MotorSettings &settings);
+
+    int         startCalibration();
+    int         storeAsMinPosition();
+    int         storeAsMaxPosition();
+    int         findMaxPos();
+    bool        isFocuserMoving();
 protected:
 
     int             ctrlCommand(const std::string sCmd, std::string &sResult, int nTimeout = MAX_TIMEOUT);

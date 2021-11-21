@@ -65,6 +65,7 @@ int CEsattoController::Connect(const char *pszPort)
 {
     int nErr = PLUGIN_OK;
     std::string sModelName;
+    std::string sDummy;
 
     if(!m_pSerx)
         return ERR_COMMNOLINK;
@@ -103,7 +104,9 @@ int CEsattoController::Connect(const char *pszPort)
 #endif
         return nErr;
     }
-    
+
+    nErr = getFirmwareVersion(sDummy);
+
     nErr = getDeviceStatus();
     if(nErr) {
 		m_bIsConnected = false;
@@ -130,6 +133,7 @@ int CEsattoController::Connect(const char *pszPort)
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [Connect] m_RunSettings.accCurrent   : " << m_RunSettings.accCurrent << std::endl;
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [Connect] m_RunSettings.decCurrent   : " << m_RunSettings.decCurrent << std::endl;
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [Connect] m_RunSettings.holdCurrent  : " << m_RunSettings.holdCurrent << std::endl;
+    m_sLogFile << "["<<getTimeStamp()<<"]"<< " [Connect] m_RunSettings.backlash     : " << m_RunSettings.backlash << std::endl;
     m_sLogFile.flush();
 #endif
     return nErr;
@@ -371,12 +375,18 @@ int CEsattoController::getDeviceStatus()
 		m_nMaxPos = jResp.at("res").at("get").at("MOT1").at("CAL_MAXPOS").get<int>();
 		m_nMinPos = jResp.at("res").at("get").at("MOT1").at("CAL_MINPOS").get<int>();
 		m_bMoving = (jResp.at("res").at("get").at("MOT1").at("STATUS").at("MST").get<std::string>() != "stop");
-        if(jResp.at("res").at("get").at("MOT1").at("CAL_DIR").get<std::string>().find("normal")!=-1)
-            m_nDir = NORMAL;
-        else if(jResp.at("res").at("get").at("MOT1").at("CAL_DIR").get<std::string>().find("invert")!=-1)
-            m_nDir = INVERT;
+
+        if(jResp.at("res").at("get").at("MOT1").contains("CAL_DIR")) {
+            if(jResp.at("res").at("get").at("MOT1").at("CAL_DIR").get<std::string>().find("normal")!=-1)
+                m_nDir = NORMAL;
+            else if(jResp.at("res").at("get").at("MOT1").at("CAL_DIR").get<std::string>().find("invert")!=-1)
+                m_nDir = INVERT;
+            else
+                m_nDir = NORMAL; // just in case.
+        }
         else
             m_nDir = NORMAL; // just in case.
+
 
         if(m_nModel == SESTO) {
             m_RunSettings.runSpeed = jResp.at("res").at("get").at("MOT1").at("FnRUN_SPD").get<int>();
@@ -387,6 +397,12 @@ int CEsattoController::getDeviceStatus()
             m_RunSettings.decCurrent = jResp.at("res").at("get").at("MOT1").at("FnRUN_CURR_DEC").get<int>();
             m_RunSettings.holdCurrent = jResp.at("res").at("get").at("MOT1").at("FnRUN_CURR_HOLD").get<int>();
         }
+
+        if(jResp.at("res").at("get").at("MOT1").contains("CAL_BKLASH")) {
+            m_RunSettings.backlash = jResp.at("res").at("get").at("MOT1").at("CAL_BKLASH").get<int>();
+        }
+        else
+            m_RunSettings.backlash = 0;
 
 
 #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
@@ -402,6 +418,7 @@ int CEsattoController::getDeviceStatus()
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getDeviceStatus] FnRUN_CURR_ACC  : " << m_RunSettings.accCurrent << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getDeviceStatus] FnRUN_CURR_DEC  : " << m_RunSettings.decCurrent << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getDeviceStatus] FnRUN_CURR_HOLD : " << m_RunSettings.holdCurrent << std::endl;
+        m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getDeviceStatus] CAL_BKLASH      : " << m_RunSettings.backlash << std::endl;
         m_sLogFile.flush();
 #endif
 	}
@@ -1042,6 +1059,7 @@ int CEsattoController::getMotorSettings(MotorSettings &settings)
     settings.accCurrent =  m_RunSettings.accCurrent;
     settings.decCurrent =  m_RunSettings.decCurrent;
     settings.holdCurrent =  m_RunSettings.holdCurrent;
+    settings.backlash =  m_RunSettings.backlash;
 
 
 #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
@@ -1052,6 +1070,7 @@ int CEsattoController::getMotorSettings(MotorSettings &settings)
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getMotorSettings] settings.accCurrent  :" << settings.accCurrent  << std::endl;
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getMotorSettings] settings.decCurrent  :" << settings.decCurrent  << std::endl;
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getMotorSettings] settings.holdCurrent :" << settings.holdCurrent  << std::endl;
+    m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getMotorSettings] settings.backlash    :" << settings.backlash  << std::endl;
     m_sLogFile.flush();
 #endif
 
@@ -1081,6 +1100,7 @@ int CEsattoController::setMotorSettings(MotorSettings &settings)
     jCmd["req"]["set"]["MOT1"]["FnRUN_CURR_ACC"]=settings.accCurrent;
     jCmd["req"]["set"]["MOT1"]["FnRUN_CURR_DEC"]=settings.decCurrent;
     jCmd["req"]["set"]["MOT1"]["FnRUN_CURR_HOLD"]=settings.holdCurrent;
+    jCmd["req"]["set"]["MOT1"]["CAL_BKLASH"]=settings.backlash;
 
 #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setMotorSettings] jCmd : " << jCmd.dump() << std::endl;
@@ -1102,7 +1122,148 @@ int CEsattoController::setMotorSettings(MotorSettings &settings)
     m_RunSettings.accCurrent =  settings.accCurrent;
     m_RunSettings.decCurrent =  settings.decCurrent;
     m_RunSettings.holdCurrent =  settings.holdCurrent;
+    m_RunSettings.backlash =  settings.backlash;
     return nErr;
+}
+
+
+int CEsattoController::startCalibration()
+{
+    int nErr = PLUGIN_OK;
+    std::string sResp;
+    json jCmd;
+    json jResp;
+
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+    m_sLogFile << "["<<getTimeStamp()<<"]"<< " [startCalibration] Called." << std::endl;
+    m_sLogFile.flush();
+#endif
+
+    if(!m_bIsConnected)
+        return ERR_COMMNOLINK;
+
+    jCmd["req"]["set"]["MOT1"]["CAL_FOCUSER"]="Init";
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+    m_sLogFile << "["<<getTimeStamp()<<"]"<< " [startCalibration] jCmd : " << jCmd.dump() << std::endl;
+    m_sLogFile.flush();
+#endif
+    nErr = ctrlCommand(jCmd.dump(), sResp);
+    if(nErr) {
+#if defined PLUGIN_DEBUG
+        m_sLogFile << "["<<getTimeStamp()<<"]"<< " [startCalibration] **** ERROR **** error initializing calibartion: " << nErr << std::endl;
+        m_sLogFile << "["<<getTimeStamp()<<"]"<< " [startCalibration] **** ERROR **** startCalibration response     : " << sResp << std::endl;
+        m_sLogFile.flush();
+#endif
+        return nErr;
+    }
+
+    return nErr;
+}
+
+int CEsattoController::storeAsMinPosition()
+{
+    int nErr = PLUGIN_OK;
+    std::string sResp;
+    json jCmd;
+    json jResp;
+
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+    m_sLogFile << "["<<getTimeStamp()<<"]"<< " [storeAsMinPosition] Called." << std::endl;
+    m_sLogFile.flush();
+#endif
+
+    if(!m_bIsConnected)
+        return ERR_COMMNOLINK;
+
+    syncMotorPosition(0); // we want the minimum position to be 0
+    startCalibration();   // start calibration and save current position as minimum. The settings dialog process will ask the user to set the focuser all the way in
+    jCmd["req"]["set"]["MOT1"]["CAL_FOCUSER"]="StoreAsMinPos";
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+    m_sLogFile << "["<<getTimeStamp()<<"]"<< " [storeAsMinPosition] jCmd : " << jCmd.dump() << std::endl;
+    m_sLogFile.flush();
+#endif
+    nErr = ctrlCommand(jCmd.dump(), sResp);
+    if(nErr) {
+#if defined PLUGIN_DEBUG
+        m_sLogFile << "["<<getTimeStamp()<<"]"<< " [storeAsMinPosition] **** ERROR **** setting motor initial position failed : " << nErr << std::endl;
+        m_sLogFile << "["<<getTimeStamp()<<"]"<< " [storeAsMinPosition] **** ERROR **** StoreAsMinPos response     : " << sResp << std::endl;
+        m_sLogFile.flush();
+#endif
+        return nErr;
+    }
+
+    return nErr;
+}
+
+int CEsattoController::storeAsMaxPosition()
+{
+    int nErr = PLUGIN_OK;
+    std::string sResp;
+    json jCmd;
+    json jResp;
+
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+    m_sLogFile << "["<<getTimeStamp()<<"]"<< " [storeAsMaxPosition] Called." << std::endl;
+    m_sLogFile.flush();
+#endif
+
+    if(!m_bIsConnected)
+        return ERR_COMMNOLINK;
+
+    jCmd["req"]["set"]["MOT1"]["CAL_FOCUSER"]="StoreAsMaxPos";
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+    m_sLogFile << "["<<getTimeStamp()<<"]"<< " [storeAsMaxPosition] jCmd : " << jCmd.dump() << std::endl;
+    m_sLogFile.flush();
+#endif
+    nErr = ctrlCommand(jCmd.dump(), sResp);
+    if(nErr) {
+#if defined PLUGIN_DEBUG
+        m_sLogFile << "["<<getTimeStamp()<<"]"<< " [storeAsMaxPosition] **** ERROR **** setting motor max position failed : " << nErr << std::endl;
+        m_sLogFile << "["<<getTimeStamp()<<"]"<< " [storeAsMaxPosition] **** ERROR **** StoreAsMinPos response     : " << sResp << std::endl;
+        m_sLogFile.flush();
+#endif
+        return nErr;
+    }
+
+    return nErr;
+}
+
+int CEsattoController::findMaxPos()
+{
+    int nErr = PLUGIN_OK;
+    std::string sResp;
+    json jCmd;
+    json jResp;
+
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+    m_sLogFile << "["<<getTimeStamp()<<"]"<< " [findMaxPos] Called." << std::endl;
+    m_sLogFile.flush();
+#endif
+
+    if(!m_bIsConnected)
+        return ERR_COMMNOLINK;
+
+    jCmd["req"]["set"]["MOT1"]["CAL_FOCUSER"]="GoOutToFindMaxPos";
+#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+    m_sLogFile << "["<<getTimeStamp()<<"]"<< " [findMaxPos] jCmd : " << jCmd.dump() << std::endl;
+    m_sLogFile.flush();
+#endif
+    nErr = ctrlCommand(jCmd.dump(), sResp);
+    if(nErr) {
+#if defined PLUGIN_DEBUG
+        m_sLogFile << "["<<getTimeStamp()<<"]"<< " [findMaxPos] **** ERROR **** sending motor to max position failed : " << nErr << std::endl;
+        m_sLogFile << "["<<getTimeStamp()<<"]"<< " [findMaxPos] **** ERROR **** GoOutToFindMaxPos response     : " << sResp << std::endl;
+        m_sLogFile.flush();
+#endif
+        return nErr;
+    }
+    return nErr;
+}
+
+bool CEsattoController::isFocuserMoving()
+{
+    getDeviceStatus();
+    return m_bMoving;
 }
 
 
