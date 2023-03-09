@@ -344,6 +344,7 @@ int CEsattoController::getDeviceStatus()
     std::string sResp;
 	json jCmd;
 	json jResp;
+    bool bNeedExtraStatus = false;
 
 #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getDeviceStatus] Called." << std::endl;
@@ -371,11 +372,28 @@ int CEsattoController::getDeviceStatus()
         m_sLogFile.flush();
 #endif
 
-        m_nCurPos = jResp.at("res").at("get").at("MOT1").at("ABS_POS").get<int>();
+        if(jResp.at("res").at("get").at("MOT1").contains("ABS_POS")) {
+            m_nCurPos = jResp.at("res").at("get").at("MOT1").at("ABS_POS").get<int>();
+        }
+        else if(jResp.at("res").at("get").at("MOT1").contains("ABS_POS_STEP")) {
+            m_nCurPos = jResp.at("res").at("get").at("MOT1").at("ABS_POS_STEP").get<int>();
+        }
+        else if(jResp.at("res").at("get").at("MOT1").contains("POSITION_STEP")) {
+            m_nCurPos = jResp.at("res").at("get").at("MOT1").at("POSITION_STEP").get<int>();
+        }
+        else if(jResp.at("res").at("get").at("MOT1").contains("POSITION")) {
+            m_nCurPos = jResp.at("res").at("get").at("MOT1").at("POSITION").get<int>();
+        }
+
 		m_nMaxPos = jResp.at("res").at("get").at("MOT1").at("CAL_MAXPOS").get<int>();
 		m_nMinPos = jResp.at("res").at("get").at("MOT1").at("CAL_MINPOS").get<int>();
-		m_bMoving = (jResp.at("res").at("get").at("MOT1").at("STATUS").at("MST").get<std::string>() != "stop");
 
+        if(jResp.at("res").at("get").at("MOT1").contains("STATUS")) {
+            m_bMoving = (jResp.at("res").at("get").at("MOT1").at("STATUS").at("MST").get<std::string>() != "stop");
+        }
+        else {
+            bNeedExtraStatus = true;
+        }
         if(jResp.at("res").at("get").at("MOT1").contains("CAL_DIR")) {
             if(jResp.at("res").at("get").at("MOT1").at("CAL_DIR").get<std::string>().find("normal")!=-1)
                 m_nDir = NORMAL;
@@ -404,6 +422,17 @@ int CEsattoController::getDeviceStatus()
         else
             m_RunSettings.backlash = 0;
 
+        if(bNeedExtraStatus) {
+            jCmd.clear();
+            jCmd["req"]["get"]["MOT1"]["STATUS"]="";
+            nErr = ctrlCommand(jCmd.dump(), sResp);
+            if(nErr)
+                return nErr;
+            jResp = json::parse(sResp);
+            if(jResp.at("res").at("get").at("MOT1").contains("STATUS")) {
+                m_bMoving = (jResp.at("res").at("get").at("MOT1").at("STATUS").at("MST").get<std::string>() != "stop");
+            }
+        }
 
 #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getDeviceStatus] m_nCurPos       : " << m_nCurPos << std::endl;
@@ -483,9 +512,12 @@ int CEsattoController::getFirmwareVersion(std::string &sVersion)
     }
     sVersion = m_sAppVer + " / " + m_sWebVer;
 
+    m_fFirmwareVersion = std::stof(m_sAppVer);
+    
 #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getFirmwareVersion] szResp     : " << sResp << std::endl;
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getFirmwareVersion] pszVersion : " << sVersion << std::endl;
+    m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getFirmwareVersion] m_fFirmwareVersion : " << m_fFirmwareVersion << std::endl;
     m_sLogFile.flush();
 #endif
 	return nErr;
@@ -995,8 +1027,7 @@ int CEsattoController::syncMotorPosition(int nPos)
 
 	if(!m_bIsConnected)
 		return ERR_COMMNOLINK;
-
-	jCmd["req"]["set"]["MOT1"]["ABS_POS"]=nPos;
+        jCmd["req"]["set"]["MOT1"]["ABS_POS"]=nPos;
 #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [syncMotorPosition] jCmd : " << jCmd.dump() << std::endl;
     m_sLogFile.flush();
@@ -1011,7 +1042,7 @@ int CEsattoController::syncMotorPosition(int nPos)
         m_sLogFile.flush();
 #endif
 		jResp = json::parse(sResp);
-		if(jResp.at("res").at("set").at("MOT1").at("ABS_POS") != "done") {
+        if(jResp.at("res").at("set").at("MOT1").at("ABS_POS") != "done") {
 #if defined PLUGIN_DEBUG
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [syncMotorPosition] **** ERROR **** syncMotorPosition failed   : " << nErr << std::endl;
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [syncMotorPosition] **** ERROR **** syncMotorPosition response : " << sResp << std::endl;
@@ -1019,7 +1050,6 @@ int CEsattoController::syncMotorPosition(int nPos)
 #endif
             return ERR_CMDFAILED;
         }
-
 	}
 	catch (json::exception& e) {
 #if defined PLUGIN_DEBUG

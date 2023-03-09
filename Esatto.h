@@ -44,7 +44,7 @@
 using json = nlohmann::json;
 
 // #define PLUGIN_DEBUG 2
-#define PLUGIN_VERSION      1.48
+#define PLUGIN_VERSION      1.51
 
 
 #define SERIAL_BUFFER_SIZE 8192
@@ -155,7 +155,8 @@ protected:
 
     MotorSettings   m_RunSettings;
 
-    CStopWatch        m_cmdDelayTimer;
+    CStopWatch      m_cmdDelayTimer;
+    float           m_fFirmwareVersion;
 
 #ifdef PLUGIN_DEBUG
     // timestamp for logs
