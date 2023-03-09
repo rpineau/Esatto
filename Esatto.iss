@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Esatto X2 Driver"
-#define MyAppVersion "1.48"
+#define MyAppVersion "1.51"
 #define MyAppPublisher "RTI-Zone"
 #define MyAppURL "https://rti-zone.org"
 
@@ -72,8 +72,10 @@ begin
   if not LoadResult then
     LoadResult := LoadStringFromFile(ExpandConstant('{userdocs}') + '\Software Bisque\TheSky Professional Edition 64\TheSkyXInstallPath.txt', Location);
     if not LoadResult then
-      RaiseException('Unable to find the installation path for The Sky X');
+      LoadResult := BrowseForFolder('Please locate the installation path for TheSkyX', Location, False);
+      if not LoadResult then
+        RaiseException('Unable to find the installation path for TheSkyX');
   if not DirExists(Location) then
-    RaiseException('The SkyX installation directory ' + Location + ' does not exist');
+    RaiseException('TheSkyX installation directory ' + Location + ' does not exist');
   Result := Location;
 end;
