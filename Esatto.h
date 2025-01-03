@@ -38,8 +38,8 @@
 
 #include "../../licensedinterfaces/sberrorx.h"
 #include "../../licensedinterfaces/serxinterface.h"
-
 #include "StopWatch.h"
+
 #include "json.hpp"
 using json = nlohmann::json;
 
@@ -48,9 +48,9 @@ using json = nlohmann::json;
 
 
 #define SERIAL_BUFFER_SIZE 8192
-#define MAX_TIMEOUT 1500
+#define MAX_TIMEOUT 250
 #define MAX_READ_WAIT_TIMEOUT 25
-#define NB_RX_WAIT 30
+// #define NB_RX_WAIT 10
 
 #define INTER_COMMAND_WAIT    100
 
@@ -60,7 +60,7 @@ using json = nlohmann::json;
 
 enum PLUGIN_Errors  {PLUGIN_OK = 0, NOT_CONNECTED, PLUGIN_CANT_CONNECT, PLUGIN_BAD_CMD_RESPONSE, COMMAND_FAILED, COMMAND_TIMEOUT};
 enum MotorStatus    {IDLE = 0, MOVING};
-enum WiFiModes      {AP=0, STA};
+enum WiFiModes      {AP=0, STA, AP_STA};
 enum TempProbe      {EXT_T = 0, NTC_T};
 enum Models         {ESATTO = 0, SESTO};
 enum MotorDir       {NORMAL=0, INVERT};
@@ -115,8 +115,12 @@ public:
     int         getDirection(int &nDir);
     int         setDirection(int nDir);
 
-    int         getWiFiConfig(int &nMode, std::string &sSSID, std::string &sPWD);
-    int         setWiFiConfig(int nMode, std::string sSSID, std::string sPWD);
+    int         isWifiEnabled(bool &bEnabled);
+    int         enableWiFi(bool bEnable);
+    int         getWiFiConfig(int &nMode, std::string &sSSID_AP, std::string &sPWD_AP, std::string &sSSID_STA, std::string &sPWD_STA);
+    int         setWiFiConfig(int nMode, std::string sSSID_AP, std::string sPWD_AP, std::string sSSID_STA, std::string sPWD_STA);
+    int         getSTAIpConfig(std::string &IpAddress, std::string &subnetMask, std::string &gatewayIpAddress, std::string &dnsIpAdress);
+    int         setSTAIpConfig(std::string IpAddress, std::string subnetMask, std::string gatewayIpAddress, std::string dnsIpAdress);
 
     int         getMotorSettings(MotorSettings &settings);
     int         setMotorSettings(MotorSettings &settings);
@@ -154,12 +158,14 @@ protected:
     int             m_nModel;
 
     MotorSettings   m_RunSettings;
-
-    CStopWatch      m_cmdDelayTimer;
     float           m_fFirmwareVersion;
 
+	CStopWatch		m_StatusTimer;
+
 #ifdef PLUGIN_DEBUG
-    // timestamp for logs
+	void  hexdump( char *inputData, int inputSize,  std::string &outHex);
+
+	// timestamp for logs
     const std::string getTimeStamp();
     std::ofstream m_sLogFile;
     std::string m_sPlatform;

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>364</width>
-    <height>604</height>
+    <width>708</width>
+    <height>536</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,14 +18,14 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>364</width>
-    <height>604</height>
+    <width>708</width>
+    <height>536</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>364</width>
-    <height>604</height>
+    <width>708</width>
+    <height>536</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -64,7 +64,7 @@
         <x>8</x>
         <y>8</y>
         <width>320</width>
-        <height>368</height>
+        <height>440</height>
        </rect>
       </property>
       <property name="title">
@@ -213,7 +213,7 @@
        <property name="geometry">
         <rect>
          <x>24</x>
-         <y>312</y>
+         <y>360</y>
          <width>144</width>
          <height>24</height>
         </rect>
@@ -245,7 +245,7 @@
        <property name="geometry">
         <rect>
          <x>24</x>
-         <y>192</y>
+         <y>200</y>
          <width>144</width>
          <height>24</height>
         </rect>
@@ -261,7 +261,7 @@
        <property name="geometry">
         <rect>
          <x>24</x>
-         <y>216</y>
+         <y>232</y>
          <width>144</width>
          <height>24</height>
         </rect>
@@ -277,7 +277,7 @@
        <property name="geometry">
         <rect>
          <x>24</x>
-         <y>240</y>
+         <y>264</y>
          <width>144</width>
          <height>24</height>
         </rect>
@@ -293,7 +293,7 @@
        <property name="geometry">
         <rect>
          <x>24</x>
-         <y>288</y>
+         <y>328</y>
          <width>144</width>
          <height>24</height>
         </rect>
@@ -309,7 +309,7 @@
        <property name="geometry">
         <rect>
          <x>24</x>
-         <y>264</y>
+         <y>296</y>
          <width>144</width>
          <height>24</height>
         </rect>
@@ -338,7 +338,7 @@
        <property name="geometry">
         <rect>
          <x>184</x>
-         <y>192</y>
+         <y>200</y>
          <width>48</width>
          <height>24</height>
         </rect>
@@ -351,7 +351,7 @@
        <property name="geometry">
         <rect>
          <x>184</x>
-         <y>216</y>
+         <y>232</y>
          <width>48</width>
          <height>24</height>
         </rect>
@@ -364,7 +364,7 @@
        <property name="geometry">
         <rect>
          <x>184</x>
-         <y>240</y>
+         <y>264</y>
          <width>48</width>
          <height>24</height>
         </rect>
@@ -377,7 +377,7 @@
        <property name="geometry">
         <rect>
          <x>184</x>
-         <y>264</y>
+         <y>296</y>
          <width>48</width>
          <height>24</height>
         </rect>
@@ -390,7 +390,7 @@
        <property name="geometry">
         <rect>
          <x>184</x>
-         <y>288</y>
+         <y>328</y>
          <width>48</width>
          <height>24</height>
         </rect>
@@ -403,7 +403,7 @@
        <property name="geometry">
         <rect>
          <x>184</x>
-         <y>312</y>
+         <y>360</y>
          <width>48</width>
          <height>24</height>
         </rect>
@@ -416,7 +416,7 @@
        <property name="geometry">
         <rect>
          <x>184</x>
-         <y>336</y>
+         <y>392</y>
          <width>48</width>
          <height>24</height>
         </rect>
@@ -429,7 +429,7 @@
        <property name="geometry">
         <rect>
          <x>24</x>
-         <y>336</y>
+         <y>392</y>
          <width>144</width>
          <height>24</height>
         </rect>
@@ -448,8 +448,8 @@
       </property>
       <property name="geometry">
        <rect>
-        <x>240</x>
-        <y>544</y>
+        <x>216</x>
+        <y>472</y>
         <width>81</width>
         <height>24</height>
        </rect>
@@ -464,8 +464,8 @@
      <widget class="QPushButton" name="pushButtonCancel">
       <property name="geometry">
        <rect>
-        <x>152</x>
-        <y>544</y>
+        <x>128</x>
+        <y>472</y>
         <width>81</width>
         <height>24</height>
        </rect>
@@ -477,84 +477,366 @@
      <widget class="QGroupBox" name="groupBox_2">
       <property name="geometry">
        <rect>
-        <x>8</x>
-        <y>392</y>
+        <x>352</x>
+        <y>8</y>
         <width>320</width>
-        <height>136</height>
+        <height>488</height>
        </rect>
       </property>
       <property name="title">
        <string>WiFi configuration</string>
       </property>
-      <widget class="QLabel" name="label_3">
+      <widget class="QGroupBox" name="groupBox_3">
        <property name="geometry">
         <rect>
          <x>8</x>
-         <y>32</y>
-         <width>80</width>
-         <height>24</height>
+         <y>88</y>
+         <width>304</width>
+         <height>128</height>
         </rect>
        </property>
-       <property name="text">
-        <string>SSID :</string>
+       <property name="title">
+        <string>Access Point mode</string>
        </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
+       <widget class="QPushButton" name="pushButton_2">
+        <property name="geometry">
+         <rect>
+          <x>104</x>
+          <y>96</y>
+          <width>112</width>
+          <height>24</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Apply</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_3">
+        <property name="geometry">
+         <rect>
+          <x>-8</x>
+          <y>32</y>
+          <width>80</width>
+          <height>24</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>SSID :</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_4">
+        <property name="geometry">
+         <rect>
+          <x>-8</x>
+          <y>64</y>
+          <width>80</width>
+          <height>24</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Password :</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="sSSID">
+        <property name="geometry">
+         <rect>
+          <x>88</x>
+          <y>32</y>
+          <width>184</width>
+          <height>24</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>TextLabel</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="sPWD">
+        <property name="geometry">
+         <rect>
+          <x>80</x>
+          <y>64</y>
+          <width>192</width>
+          <height>24</height>
+         </rect>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Password</enum>
+        </property>
+       </widget>
       </widget>
-      <widget class="QLabel" name="label_4">
+      <widget class="QGroupBox" name="groupBox_4">
        <property name="geometry">
         <rect>
-         <x>8</x>
-         <y>64</y>
-         <width>80</width>
-         <height>24</height>
+         <x>16</x>
+         <y>224</y>
+         <width>289</width>
+         <height>248</height>
         </rect>
        </property>
-       <property name="text">
-        <string>Password :</string>
+       <property name="title">
+        <string>Client mode</string>
        </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
+       <widget class="QLabel" name="label_14">
+        <property name="geometry">
+         <rect>
+          <x>16</x>
+          <y>32</y>
+          <width>64</width>
+          <height>24</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>SSID :</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_15">
+        <property name="geometry">
+         <rect>
+          <x>8</x>
+          <y>64</y>
+          <width>72</width>
+          <height>24</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Password :</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="StaPWD">
+        <property name="geometry">
+         <rect>
+          <x>88</x>
+          <y>64</y>
+          <width>192</width>
+          <height>24</height>
+         </rect>
+        </property>
+        <property name="echoMode">
+         <enum>QLineEdit::Password</enum>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="pushButton_4">
+        <property name="geometry">
+         <rect>
+          <x>160</x>
+          <y>216</y>
+          <width>112</width>
+          <height>24</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Apply</string>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="StaSSID">
+        <property name="geometry">
+         <rect>
+          <x>88</x>
+          <y>32</y>
+          <width>192</width>
+          <height>24</height>
+         </rect>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_16">
+        <property name="geometry">
+         <rect>
+          <x>8</x>
+          <y>96</y>
+          <width>96</width>
+          <height>24</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>MAC Address :</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="GatewayIP">
+        <property name="geometry">
+         <rect>
+          <x>120</x>
+          <y>184</y>
+          <width>113</width>
+          <height>24</height>
+         </rect>
+        </property>
+        <property name="inputMask">
+         <string>000.000.000.000</string>
+        </property>
+        <property name="text">
+         <string>192.168.0.1</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_17">
+        <property name="geometry">
+         <rect>
+          <x>8</x>
+          <y>120</y>
+          <width>96</width>
+          <height>24</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>IP Address :</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="MACAddress">
+        <property name="geometry">
+         <rect>
+          <x>120</x>
+          <y>96</y>
+          <width>136</width>
+          <height>24</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>00:11:22:33:44:55</string>
+        </property>
+        <property name="textInteractionFlags">
+         <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_19">
+        <property name="geometry">
+         <rect>
+          <x>8</x>
+          <y>152</y>
+          <width>96</width>
+          <height>24</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Subnet mask :</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_20">
+        <property name="geometry">
+         <rect>
+          <x>32</x>
+          <y>184</y>
+          <width>72</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Gateway :</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="SubnetMask">
+        <property name="geometry">
+         <rect>
+          <x>120</x>
+          <y>152</y>
+          <width>113</width>
+          <height>24</height>
+         </rect>
+        </property>
+        <property name="inputMask">
+         <string>000.000.000.000</string>
+        </property>
+        <property name="text">
+         <string>255.255.255.0</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+       </widget>
+       <widget class="QLineEdit" name="IPAddress">
+        <property name="geometry">
+         <rect>
+          <x>120</x>
+          <y>120</y>
+          <width>113</width>
+          <height>24</height>
+         </rect>
+        </property>
+        <property name="inputMask">
+         <string>000.000.000.000</string>
+        </property>
+        <property name="text">
+         <string>192.168.0.99</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+        </property>
+       </widget>
       </widget>
-      <widget class="QLineEdit" name="sPWD">
+      <widget class="QComboBox" name="comboBox">
        <property name="geometry">
         <rect>
-         <x>96</x>
-         <y>64</y>
-         <width>192</width>
-         <height>24</height>
-        </rect>
-       </property>
-       <property name="echoMode">
-        <enum>QLineEdit::Password</enum>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButton_2">
-       <property name="geometry">
-        <rect>
-         <x>120</x>
-         <y>96</y>
-         <width>112</width>
-         <height>24</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Set</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="sSSID">
-       <property name="geometry">
-        <rect>
-         <x>104</x>
-         <y>32</y>
+         <x>112</x>
+         <y>56</y>
          <width>184</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <item>
+        <property name="text">
+         <string>Access Point</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Client/Station</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Both AP and Station</string>
+        </property>
+       </item>
+      </widget>
+      <widget class="QLabel" name="label_18">
+       <property name="geometry">
+        <rect>
+         <x>48</x>
+         <y>56</y>
+         <width>48</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Mode :</string>
+       </property>
+      </widget>
+      <widget class="QCheckBox" name="checkBox">
+       <property name="geometry">
+        <rect>
+         <x>16</x>
+         <y>24</y>
+         <width>85</width>
          <height>24</height>
         </rect>
        </property>
        <property name="text">
-        <string>TextLabel</string>
+        <string>Enable</string>
        </property>
       </widget>
      </widget>
