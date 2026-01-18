@@ -244,7 +244,8 @@ int CEsattoController::gotoPosition(int nPos)
 	m_sLogFile.flush();
 #endif
 
-	jCmd["req"]["cmd"]["MOT1"]["GOTO"]=nPos;
+
+	jCmd["req"]["cmd"]["MOT1"]["MOVE_ABS"]["STEP"]=nPos;
 
 #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
 	m_sLogFile << "["<<getTimeStamp()<<"]"<< " [gotoPosition] m_StatusTimer.GetElapsedSeconds() : " << m_StatusTimer.GetElapsedSeconds() << std::endl;
@@ -270,7 +271,7 @@ int CEsattoController::gotoPosition(int nPos)
         m_sLogFile.flush();
 #endif
 
-		if(jResp.at("res").at("cmd").at("MOT1").at("GOTO") == "done") {
+		if(jResp.at("res").at("cmd").at("MOT1").at("STEP") == "done") {
 			m_nTargetPos = nPos;
 #if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [gotoPosition] goto m_nTargetPos : " << m_nTargetPos << std::endl;
