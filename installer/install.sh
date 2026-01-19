@@ -32,16 +32,28 @@ else
 	PLUGINS_DIR="PlugIns"
 fi
 
-cp "./rotatorlist PegasusFalcon.txt" "$TheSkyX_Path/Resources/Common/Miscellaneous Files/"
-cp "./PegasusFalcon.ui" "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/RotatorPlugIns/"
-cp "./PegasusAstro.png" "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/RotatorPlugIns/"
-cp "./libPegasusFalcon.so" "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/RotatorPlugIns/"
+cp "./rotatorlist Arco.txt" "$TheSkyX_Path/Resources/Common/Miscellaneous Files/"
+cp "./focuserlist Esatto.txt" "$TheSkyX_Path/Resources/Common/Miscellaneous Files/"
+
+cp "./Arco.ui" "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/RotatorPlugIns/"
+cp "./PrimaLuceLab.png" "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/RotatorPlugIns/"
+cp "./libArco.dylib" "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/RotatorPlugIns/"
+
+cp "./Esatto.ui" "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/FocuserPlugIns/"
+cp "./PrimaLuceLab.png" "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/FocuserPlugIns/"
+cp "./libEsatto.dylib" "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/FocuserPlugIns/"
 
 app_owner=`/usr/bin/stat -c "%u" "$TheSkyX_Path" | xargs id -n -u`
 if [ ! -z "$app_owner" ]; then
-	chown $app_owner "$TheSkyX_Path/Resources/Common/Miscellaneous Files/rotatorlist PegasusFalcon.txt"
-	chown $app_owner "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/RotatorPlugIns/PegasusFalcon.ui"
-	chown $app_owner "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/RotatorPlugIns/PegasusAstro.png"
-	chown $app_owner "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/RotatorPlugIns/libPegasusFalcon.so"
+	chown $app_owner "$TheSkyX_Path/Resources/Common/Miscellaneous Files/rotatorlist Arco..txt"
+	chown $app_owner "$PLUGINS_DIR/RotatorPlugIns/Arco.ui"
+	chown $app_owner "$PLUGINS_DIR/RotatorPlugIns/PrimaLuceLab.png"
+	chown $app_owner "$PLUGINS_DIR/RotatorPlugIns/libArcodylib"
+
+	chown $app_owner "$TheSkyX_Path/Resources/Common/Miscellaneous Files/focuserlist Esatto.txt"
+	chown $app_owner "$PLUGINS_DIR/FocuserPlugIns/Esatto.ui"
+	chown $app_owner "$PLUGINS_DIR/FocuserPlugIns/PrimaLuceLab.png"
+	chown $app_owner "$PLUGINS_DIR/FocuserPlugIns/libEsatto.dylib"
 fi
-chmod  755 "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/RotatorPlugIns/libPegasusFalcon.so"
+chmod  755 "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/RotatorPlugIns/libArco.so"
+chmod  755 "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/FocuserPlugIns/libEsatto.so"
