@@ -7,38 +7,38 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9306A75C1EDE325800A1E90B /* Esatto.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 9306A75A1EDE325800A1E90B /* Esatto.cpp */; };
-		9306A75D1EDE325800A1E90B /* Esatto.h in Headers */ = {isa = PBXBuildFile; fileRef = 9306A75B1EDE325800A1E90B /* Esatto.h */; };
-		933E14251EDCA6B90044D947 /* focuserMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 933E14211EDCA6B90044D947 /* focuserMain.cpp */; };
-		933E14261EDCA6B90044D947 /* focuserMain.h in Headers */ = {isa = PBXBuildFile; fileRef = 933E14221EDCA6B90044D947 /* focuserMain.h */; };
-		933E14271EDCA6B90044D947 /* x2focuser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 933E14231EDCA6B90044D947 /* x2focuser.cpp */; };
-		933E14281EDCA6B90044D947 /* x2focuser.h in Headers */ = {isa = PBXBuildFile; fileRef = 933E14241EDCA6B90044D947 /* x2focuser.h */; };
+		933A04321EE0BD5D00D06551 /* StopWatch.h in Headers */ = {isa = PBXBuildFile; fileRef = 933A04311EE0BD5D00D06551 /* StopWatch.h */; };
+		933E14271EDCA6B90044D947 /* x2rotator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 933E14231EDCA6B90044D947 /* x2rotator.cpp */; };
+		933E14281EDCA6B90044D947 /* x2rotator.h in Headers */ = {isa = PBXBuildFile; fileRef = 933E14241EDCA6B90044D947 /* x2rotator.h */; };
 		939F4F2D1EE1EE6300E26EED /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 939F4F2C1EE1EE6300E26EED /* IOKit.framework */; };
 		939F4F2F1EE1EE7200E26EED /* CoreFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 939F4F2E1EE1EE7200E26EED /* CoreFoundation.framework */; };
-		93DF37602350E0520023188F /* json.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 93DF375F2350E0520023188F /* json.hpp */; };
-		93E598AF2D2760E600173555 /* StopWatch.h in Headers */ = {isa = PBXBuildFile; fileRef = 93E598AE2D2760E600173555 /* StopWatch.h */; };
-		93F6D00F2F1DE2020095028E /* x2rotator.h in Headers */ = {isa = PBXBuildFile; fileRef = 93F6D00C2F1DE2020095028E /* x2rotator.h */; };
-		93F6D0112F1DE2020095028E /* x2rotator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93F6D00D2F1DE2020095028E /* x2rotator.cpp */; };
-		93F6D0142F1DE22A0095028E /* Arco.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93F6D0132F1DE22A0095028E /* Arco.cpp */; };
-		93F6D0152F1DE22A0095028E /* Arco.h in Headers */ = {isa = PBXBuildFile; fileRef = 93F6D0122F1DE22A0095028E /* Arco.h */; };
+		93F6D0052F1D734F0095028E /* json.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 93F6D0022F1D734F0095028E /* json.hpp */; };
+		93F6D0062F1D734F0095028E /* Arco.h in Headers */ = {isa = PBXBuildFile; fileRef = 93F6D0002F1D734F0095028E /* Arco.h */; };
+		93F6D0072F1D734F0095028E /* rotatorMain.h in Headers */ = {isa = PBXBuildFile; fileRef = 93F6D0032F1D734F0095028E /* rotatorMain.h */; };
+		93F6D0082F1D734F0095028E /* Arco.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93F6D0012F1D734F0095028E /* Arco.cpp */; };
+		93F6D0092F1D734F0095028E /* rotatorMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93F6D0042F1D734F0095028E /* rotatorMain.cpp */; };
+		93F6D01A2F1DE33D0095028E /* Esatto.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93F6D0172F1DE33D0095028E /* Esatto.cpp */; };
+		93F6D01B2F1DE33D0095028E /* x2focuser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 93F6D0192F1DE33D0095028E /* x2focuser.cpp */; };
+		93F6D01C2F1DE33D0095028E /* Esatto.h in Headers */ = {isa = PBXBuildFile; fileRef = 93F6D0162F1DE33D0095028E /* Esatto.h */; };
+		93F6D01D2F1DE33D0095028E /* x2focuser.h in Headers */ = {isa = PBXBuildFile; fileRef = 93F6D0182F1DE33D0095028E /* x2focuser.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		9306A75A1EDE325800A1E90B /* Esatto.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Esatto.cpp; sourceTree = "<group>"; };
-		9306A75B1EDE325800A1E90B /* Esatto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Esatto.h; sourceTree = "<group>"; };
-		933E14191EDCA6680044D947 /* libEsatto.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libEsatto.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
-		933E14211EDCA6B90044D947 /* focuserMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = focuserMain.cpp; sourceTree = "<group>"; };
-		933E14221EDCA6B90044D947 /* focuserMain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = focuserMain.h; sourceTree = "<group>"; };
-		933E14231EDCA6B90044D947 /* x2focuser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = x2focuser.cpp; sourceTree = "<group>"; };
-		933E14241EDCA6B90044D947 /* x2focuser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = x2focuser.h; sourceTree = "<group>"; };
+		933A04311EE0BD5D00D06551 /* StopWatch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = StopWatch.h; sourceTree = "<group>"; };
+		933E14191EDCA6680044D947 /* libArco.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libArco.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		933E14231EDCA6B90044D947 /* x2rotator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = x2rotator.cpp; sourceTree = "<group>"; };
+		933E14241EDCA6B90044D947 /* x2rotator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = x2rotator.h; sourceTree = "<group>"; };
 		939F4F2C1EE1EE6300E26EED /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		939F4F2E1EE1EE7200E26EED /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
-		93DF375F2350E0520023188F /* json.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = json.hpp; sourceTree = "<group>"; };
-		93E598AE2D2760E600173555 /* StopWatch.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StopWatch.h; sourceTree = "<group>"; };
-		93F6D00C2F1DE2020095028E /* x2rotator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = x2rotator.h; sourceTree = "<group>"; };
-		93F6D00D2F1DE2020095028E /* x2rotator.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = x2rotator.cpp; sourceTree = "<group>"; };
-		93F6D0122F1DE22A0095028E /* Arco.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Arco.h; sourceTree = "<group>"; };
-		93F6D0132F1DE22A0095028E /* Arco.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Arco.cpp; sourceTree = "<group>"; };
+		93F6D0002F1D734F0095028E /* Arco.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Arco.h; sourceTree = "<group>"; };
+		93F6D0012F1D734F0095028E /* Arco.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Arco.cpp; sourceTree = "<group>"; };
+		93F6D0022F1D734F0095028E /* json.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = json.hpp; sourceTree = "<group>"; };
+		93F6D0032F1D734F0095028E /* rotatorMain.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = rotatorMain.h; sourceTree = "<group>"; };
+		93F6D0042F1D734F0095028E /* rotatorMain.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = rotatorMain.cpp; sourceTree = "<group>"; };
+		93F6D0162F1DE33D0095028E /* Esatto.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Esatto.h; sourceTree = "<group>"; };
+		93F6D0172F1DE33D0095028E /* Esatto.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Esatto.cpp; sourceTree = "<group>"; };
+		93F6D0182F1DE33D0095028E /* x2focuser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = x2focuser.h; sourceTree = "<group>"; };
+		93F6D0192F1DE33D0095028E /* x2focuser.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = x2focuser.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -66,7 +66,7 @@
 		933E141A1EDCA6680044D947 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				933E14191EDCA6680044D947 /* libEsatto.dylib */,
+				933E14191EDCA6680044D947 /* libArco.dylib */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -74,18 +74,18 @@
 		933E14201EDCA6AC0044D947 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				93F6D0122F1DE22A0095028E /* Arco.h */,
-				93F6D0132F1DE22A0095028E /* Arco.cpp */,
-				93F6D00C2F1DE2020095028E /* x2rotator.h */,
-				93F6D00D2F1DE2020095028E /* x2rotator.cpp */,
-				93E598AE2D2760E600173555 /* StopWatch.h */,
-				93DF375F2350E0520023188F /* json.hpp */,
-				9306A75A1EDE325800A1E90B /* Esatto.cpp */,
-				9306A75B1EDE325800A1E90B /* Esatto.h */,
-				933E14211EDCA6B90044D947 /* focuserMain.cpp */,
-				933E14221EDCA6B90044D947 /* focuserMain.h */,
-				933E14231EDCA6B90044D947 /* x2focuser.cpp */,
-				933E14241EDCA6B90044D947 /* x2focuser.h */,
+				93F6D0162F1DE33D0095028E /* Esatto.h */,
+				93F6D0172F1DE33D0095028E /* Esatto.cpp */,
+				93F6D0182F1DE33D0095028E /* x2focuser.h */,
+				93F6D0192F1DE33D0095028E /* x2focuser.cpp */,
+				93F6D0002F1D734F0095028E /* Arco.h */,
+				93F6D0012F1D734F0095028E /* Arco.cpp */,
+				93F6D0022F1D734F0095028E /* json.hpp */,
+				93F6D0032F1D734F0095028E /* rotatorMain.h */,
+				93F6D0042F1D734F0095028E /* rotatorMain.cpp */,
+				933A04311EE0BD5D00D06551 /* StopWatch.h */,
+				933E14231EDCA6B90044D947 /* x2rotator.cpp */,
+				933E14241EDCA6B90044D947 /* x2rotator.h */,
 			);
 			name = Sources;
 			sourceTree = "<group>";
@@ -106,22 +106,22 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				933E14281EDCA6B90044D947 /* x2focuser.h in Headers */,
-				93F6D0152F1DE22A0095028E /* Arco.h in Headers */,
-				93F6D00F2F1DE2020095028E /* x2rotator.h in Headers */,
-				933E14261EDCA6B90044D947 /* focuserMain.h in Headers */,
-				93E598AF2D2760E600173555 /* StopWatch.h in Headers */,
-				93DF37602350E0520023188F /* json.hpp in Headers */,
-				9306A75D1EDE325800A1E90B /* Esatto.h in Headers */,
+				93F6D01C2F1DE33D0095028E /* Esatto.h in Headers */,
+				93F6D01D2F1DE33D0095028E /* x2focuser.h in Headers */,
+				933E14281EDCA6B90044D947 /* x2rotator.h in Headers */,
+				93F6D0052F1D734F0095028E /* json.hpp in Headers */,
+				93F6D0062F1D734F0095028E /* Arco.h in Headers */,
+				93F6D0072F1D734F0095028E /* rotatorMain.h in Headers */,
+				933A04321EE0BD5D00D06551 /* StopWatch.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		933E14181EDCA6680044D947 /* Esatto */ = {
+		933E14181EDCA6680044D947 /* Arco */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 933E141D1EDCA6680044D947 /* Build configuration list for PBXNativeTarget "Esatto" */;
+			buildConfigurationList = 933E141D1EDCA6680044D947 /* Build configuration list for PBXNativeTarget "Arco" */;
 			buildPhases = (
 				933E14151EDCA6680044D947 /* Sources */,
 				933E14161EDCA6680044D947 /* Frameworks */,
@@ -131,9 +131,9 @@
 			);
 			dependencies = (
 			);
-			name = Esatto;
-			productName = Esatto;
-			productReference = 933E14191EDCA6680044D947 /* libEsatto.dylib */;
+			name = Arco;
+			productName = Arco;
+			productReference = 933E14191EDCA6680044D947 /* libArco.dylib */;
 			productType = "com.apple.product-type.library.dynamic";
 		};
 /* End PBXNativeTarget section */
@@ -149,12 +149,12 @@
 					933E14181EDCA6680044D947 = {
 						CreatedOnToolsVersion = 8.2.1;
 						DevelopmentTeam = PB97QXVYQC;
-						ProvisioningStyle = Automatic;
+						ProvisioningStyle = Manual;
 					};
 				};
 			};
-			buildConfigurationList = 933E14141EDCA6680044D947 /* Build configuration list for PBXProject "Esatto" */;
-			compatibilityVersion = "Xcode 11.0";
+			buildConfigurationList = 933E14141EDCA6680044D947 /* Build configuration list for PBXProject "Arco" */;
+			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -166,7 +166,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				933E14181EDCA6680044D947 /* Esatto */,
+				933E14181EDCA6680044D947 /* Arco */,
 			);
 		};
 /* End PBXProject section */
@@ -176,11 +176,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				93F6D0142F1DE22A0095028E /* Arco.cpp in Sources */,
-				933E14251EDCA6B90044D947 /* focuserMain.cpp in Sources */,
-				933E14271EDCA6B90044D947 /* x2focuser.cpp in Sources */,
-				9306A75C1EDE325800A1E90B /* Esatto.cpp in Sources */,
-				93F6D0112F1DE2020095028E /* x2rotator.cpp in Sources */,
+				93F6D0082F1D734F0095028E /* Arco.cpp in Sources */,
+				93F6D0092F1D734F0095028E /* rotatorMain.cpp in Sources */,
+				93F6D01A2F1DE33D0095028E /* Esatto.cpp in Sources */,
+				93F6D01B2F1DE33D0095028E /* x2focuser.cpp in Sources */,
+				933E14271EDCA6B90044D947 /* x2rotator.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -193,7 +193,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -218,12 +218,12 @@
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = PB97QXVYQC;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -235,14 +235,13 @@
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				"GCC_PREPROCESSOR_DEFINITIONS[arch=*]" = SB_MAC_BUILD;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 11.5;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -256,7 +255,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
@@ -281,27 +280,25 @@
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = PB97QXVYQC;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = "compiler-default";
 				GCC_NO_COMMON_BLOCKS = YES;
-				"GCC_PREPROCESSOR_DEFINITIONS[arch=*]" = SB_MAC_BUILD;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 11.5;
 				MTL_ENABLE_DEBUG_INFO = NO;
-				ONLY_ACTIVE_ARCH = NO;
 				SDKROOT = macosx;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 			};
@@ -310,11 +307,9 @@
 		933E141E1EDCA6680044D947 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
-				CLANG_CXX_LIBRARY = "compiler-default";
 				CODE_SIGN_IDENTITY = "-";
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = PB97QXVYQC;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_PREFIX = lib;
@@ -323,7 +318,7 @@
 					"\"$(SRCROOT)/\"",
 					"\"$(SRCROOT)/../..\"",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MACOSX_DEPLOYMENT_TARGET = 11.5;
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -332,11 +327,9 @@
 		933E141F1EDCA6680044D947 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
-				CLANG_CXX_LIBRARY = "compiler-default";
 				CODE_SIGN_IDENTITY = "-";
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = PB97QXVYQC;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				EXECUTABLE_PREFIX = lib;
@@ -345,7 +338,7 @@
 					"\"$(SRCROOT)/\"",
 					"\"$(SRCROOT)/../..\"",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MACOSX_DEPLOYMENT_TARGET = 11.5;
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -354,7 +347,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		933E14141EDCA6680044D947 /* Build configuration list for PBXProject "Esatto" */ = {
+		933E14141EDCA6680044D947 /* Build configuration list for PBXProject "Arco" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				933E141B1EDCA6680044D947 /* Debug */,
@@ -363,7 +356,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		933E141D1EDCA6680044D947 /* Build configuration list for PBXNativeTarget "Esatto" */ = {
+		933E141D1EDCA6680044D947 /* Build configuration list for PBXNativeTarget "Arco" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				933E141E1EDCA6680044D947 /* Debug */,

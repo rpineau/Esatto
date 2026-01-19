@@ -5,8 +5,8 @@
 //  Created by Rodolphe Pineau on 10/11/2019.
 
 
-#ifndef __PLUGIN__
-#define __PLUGIN__
+#ifndef __ESATTO_PLUGIN__
+#define __ESATTO_PLUGIN__
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -43,14 +43,13 @@
 #include "json.hpp"
 using json = nlohmann::json;
 
-// #define PLUGIN_DEBUG 2
-#define PLUGIN_VERSION      1.51
+// #define ESATTO_PLUGIN_DEBUG 2
+#define ESATTO_PLUGIN_VERSION      1.51
 
 
 #define SERIAL_BUFFER_SIZE 8192
 #define MAX_TIMEOUT 250
 #define MAX_READ_WAIT_TIMEOUT 25
-// #define NB_RX_WAIT 10
 
 #define INTER_COMMAND_WAIT    100
 
@@ -130,6 +129,11 @@ public:
     int         storeAsMaxPosition();
     int         findMaxPos();
     bool        isFocuserMoving();
+
+	int         setLeds(std::string sLedState);
+	int         getLeds(std::string &sLedState);
+
+
 protected:
 
     int             ctrlCommand(const std::string sCmd, std::string &sResult, int nTimeout = MAX_TIMEOUT);
@@ -162,7 +166,7 @@ protected:
 
 	CStopWatch		m_StatusTimer;
 
-#ifdef PLUGIN_DEBUG
+#ifdef ESATTO_PLUGIN_DEBUG
 	void  hexdump( char *inputData, int inputSize,  std::string &outHex);
 
 	// timestamp for logs
@@ -175,4 +179,4 @@ protected:
 
 };
 
-#endif //__PLUGIN__
+#endif //__ESATTO_PLUGIN__

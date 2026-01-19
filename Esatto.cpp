@@ -26,7 +26,7 @@ CEsattoController::CEsattoController()
 	m_sModelName.clear();
     m_nModel = ESATTO;
 
-#ifdef PLUGIN_DEBUG
+#ifdef ESATTO_PLUGIN_DEBUG
 #if defined(SB_WIN_BUILD)
     m_sLogfilePath = getenv("HOMEDRIVE");
     m_sLogfilePath += getenv("HOMEPATH");
@@ -44,7 +44,7 @@ CEsattoController::CEsattoController()
     m_sLogFile.open(m_sLogfilePath, std::ios::out |std::ios::trunc);
 #endif
 
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [CEsattoController] Version " << std::fixed << std::setprecision(2) << PLUGIN_VERSION << " build " << __DATE__ << " " << __TIME__ << " on "<< m_sPlatform << std::endl;
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [CEsattoController] Constructor Called." << std::endl;
     m_sLogFile.flush();
@@ -54,7 +54,7 @@ CEsattoController::CEsattoController()
 
 CEsattoController::~CEsattoController()
 {
-#ifdef    PLUGIN_DEBUG
+#ifdef    ESATTO_PLUGIN_DEBUG
     // Close LogFile
     if(m_sLogFile.is_open())
         m_sLogFile.close();
@@ -70,7 +70,7 @@ int CEsattoController::Connect(const char *pszPort)
     if(!m_pSerx)
         return ERR_COMMNOLINK;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [Connect] Called." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -83,13 +83,13 @@ int CEsattoController::Connect(const char *pszPort)
 
     m_bIsConnected = true;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [Connect] connected to " << pszPort << std::endl;
     m_sLogFile.flush();
 #endif
 
     // get status so we can figure out what device we are connecting to.
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [Connect] getting device status." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -97,7 +97,7 @@ int CEsattoController::Connect(const char *pszPort)
     nErr = getModelName(sModelName);
     if(nErr) {
         m_bIsConnected = false;
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [Connect] **** ERROR **** getting device model names : " << nErr << std::endl;
         m_sLogFile.flush();
 #endif
@@ -109,7 +109,7 @@ int CEsattoController::Connect(const char *pszPort)
     nErr = getDeviceStatus();
     if(nErr) {
 		m_bIsConnected = false;
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [Connect] **** ERROR **** getting device status : " << nErr << std::endl;
         m_sLogFile.flush();
 #endif
@@ -124,7 +124,7 @@ int CEsattoController::Connect(const char *pszPort)
     MotorSettings tmpSettings;
     getMotorSettings(tmpSettings);
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [Connect] m_RunSettings.runSpeed     : " << m_RunSettings.runSpeed << std::endl;
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [Connect] m_RunSettings.accSpeed     : " << m_RunSettings.accSpeed << std::endl;
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [Connect] m_RunSettings.decSpeed     : " << m_RunSettings.decSpeed << std::endl;
@@ -136,7 +136,7 @@ int CEsattoController::Connect(const char *pszPort)
     m_sLogFile.flush();
 #endif
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
 	m_sLogFile << "["<<getTimeStamp()<<"]"<< " [Connect] Done." << std::endl;
 	m_sLogFile.flush();
 #endif
@@ -160,7 +160,7 @@ int CEsattoController::haltFocuser()
 	json jCmd;
 	json jResp;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [haltFocuser] Called." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -179,13 +179,13 @@ int CEsattoController::haltFocuser()
 	// parse output
 	try {
 		jResp = json::parse(sResp);
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [haltFocuser] response : " << sResp << std::endl;
         m_sLogFile.flush();
 #endif
 
         if(jResp.at("res").at("cmd").at("MOT1").at("MOT_ABORT") == "done") {
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [haltFocuser] motor has stopped." << std::endl;
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [haltFocuser] m_nTargetPos : " << m_nTargetPos << std::endl;
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [haltFocuser] m_nCurPos    : " << m_nCurPos << std::endl;
@@ -196,7 +196,7 @@ int CEsattoController::haltFocuser()
 
         }
         else {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [Connect] **** ERROR **** haltFocuser failed : " << nErr << std::endl;
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [Connect] **** ERROR **** haltFocuser response : " << sResp << std::endl;
             m_sLogFile.flush();
@@ -205,7 +205,7 @@ int CEsattoController::haltFocuser()
         }
 	}
     catch (json::exception& e) {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [haltFocuser] json exception : " << e.what() << " - " << e.id << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [haltFocuser] json exception response : " << sResp << std::endl;
         m_sLogFile.flush();
@@ -223,7 +223,7 @@ int CEsattoController::gotoPosition(int nPos)
 	json jCmd;
 	json jResp;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [gotoPosition] Called." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -235,11 +235,11 @@ int CEsattoController::gotoPosition(int nPos)
     if (m_bPosLimitEnabled && (nPos>m_nMaxPos || nPos < m_nMinPos))
         return ERR_LIMITSEXCEEDED;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [gotoPosition] goto position : " << nPos << std::endl;
     m_sLogFile.flush();
 #endif
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
 	m_sLogFile << "["<<getTimeStamp()<<"]"<< " [gotoPosition] m_StatusTimer.GetElapsedSeconds() : " << m_StatusTimer.GetElapsedSeconds() << std::endl;
 	m_sLogFile.flush();
 #endif
@@ -247,12 +247,12 @@ int CEsattoController::gotoPosition(int nPos)
 
 	jCmd["req"]["cmd"]["MOT1"]["MOVE_ABS"]["STEP"]=nPos;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
 	m_sLogFile << "["<<getTimeStamp()<<"]"<< " [gotoPosition] m_StatusTimer.GetElapsedSeconds() : " << m_StatusTimer.GetElapsedSeconds() << std::endl;
 	m_sLogFile.flush();
 #endif
 	nErr = ctrlCommand(jCmd.dump(), sResp);
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
 	m_sLogFile << "["<<getTimeStamp()<<"]"<< " [gotoPosition] m_StatusTimer.GetElapsedSeconds() : " << m_StatusTimer.GetElapsedSeconds() << std::endl;
 	m_sLogFile.flush();
 #endif
@@ -266,20 +266,20 @@ int CEsattoController::gotoPosition(int nPos)
 
 	try {
 		jResp = json::parse(sResp);
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [haltFocuser] response : " << jResp.dump(2) << std::endl;
         m_sLogFile.flush();
 #endif
 
 		if(jResp.at("res").at("cmd").at("MOT1").at("STEP") == "done") {
 			m_nTargetPos = nPos;
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [gotoPosition] goto m_nTargetPos : " << m_nTargetPos << std::endl;
             m_sLogFile.flush();
 #endif
 		}
 		else {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [Connect] **** ERROR **** gotoPosition failed : " << nErr << std::endl;
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [Connect] **** ERROR **** gotoPosition response : " << sResp << std::endl;
             m_sLogFile.flush();
@@ -289,7 +289,7 @@ int CEsattoController::gotoPosition(int nPos)
 		}
 	}
     catch (json::exception& e) {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [haltFocuser] json exception : " << e.what() << " - " << e.id << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [haltFocuser] json exception response : " << sResp << std::endl;
         m_sLogFile.flush();
@@ -308,7 +308,7 @@ int CEsattoController::moveRelativeToPosision(int nSteps)
 	if(!m_bIsConnected)
 		return ERR_COMMNOLINK;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [moveRelativeToPosision] Called." << std::endl;
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [moveRelativeToPosision] goto relative position : " << nSteps << std::endl;
     m_sLogFile.flush();
@@ -325,7 +325,7 @@ int CEsattoController::isGoToComplete(bool &bComplete)
 {
     int nErr = PLUGIN_OK;
 	
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [isGoToComplete] Called." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -341,7 +341,7 @@ int CEsattoController::isGoToComplete(bool &bComplete)
     }
 
 	isFocuserMoving();
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [isGoToComplete] m_bMoving : " << (m_bMoving?"True":"False") << std::endl;
     m_sLogFile.flush();
 #endif
@@ -349,7 +349,7 @@ int CEsattoController::isGoToComplete(bool &bComplete)
 		return nErr;
 
 	getPosition(m_nCurPos);
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [isGoToComplete] m_nCurPos    : " << m_nCurPos << std::endl;
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [isGoToComplete] m_nTargetPos : " << m_nTargetPos << std::endl;
     m_sLogFile.flush();
@@ -372,7 +372,7 @@ int CEsattoController::getDeviceStatus()
 	json jCmd;
 	json jResp;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getDeviceStatus] Called." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -383,7 +383,7 @@ int CEsattoController::getDeviceStatus()
 	if(m_StatusTimer.GetElapsedSeconds()<1)
 		return nErr;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
 	m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getDeviceStatus] m_StatusTimer.GetElapsedSeconds() : " << m_StatusTimer.GetElapsedSeconds() << std::endl;
 	m_sLogFile.flush();
 #endif
@@ -392,7 +392,7 @@ int CEsattoController::getDeviceStatus()
 
 	jCmd["req"]["get"]["MOT1"]="";
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getDeviceStatus] jCmd : " << jCmd.dump() << std::endl;
     m_sLogFile.flush();
 #endif
@@ -407,7 +407,7 @@ int CEsattoController::getDeviceStatus()
 	// parse output
 	try {
 		jResp = json::parse(sResp);
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getDeviceStatus] response : " << jResp.dump(2) << std::endl;
         m_sLogFile.flush();
 #endif
@@ -456,7 +456,7 @@ int CEsattoController::getDeviceStatus()
         else
             m_RunSettings.backlash = 0;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getDeviceStatus] m_nCurPos       : " << m_nCurPos << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getDeviceStatus] m_nMaxPos       : " << m_nMaxPos << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getDeviceStatus] m_nMinPos       : " << m_nMinPos << std::endl;
@@ -473,7 +473,7 @@ int CEsattoController::getDeviceStatus()
 #endif
 	}
     catch (json::exception& e) {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getDeviceStatus] json exception : " << e.what() << " - " << e.id << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getDeviceStatus] json exception response : " << sResp << std::endl;
         m_sLogFile.flush();
@@ -481,7 +481,7 @@ int CEsattoController::getDeviceStatus()
         return ERR_CMDFAILED;
     }
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
 	m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getDeviceStatus] Done." << std::endl;
 	m_sLogFile.flush();
 #endif
@@ -497,7 +497,7 @@ int CEsattoController::getFirmwareVersion(std::string &sVersion)
 	json jResp;
 
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getFirmwareVersion] Called." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -512,7 +512,7 @@ int CEsattoController::getFirmwareVersion(std::string &sVersion)
 
 	jCmd["req"]["get"]["SWVERS"]="";
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getFirmwareVersion] jCmd : " << jCmd.dump() << std::endl;
     m_sLogFile.flush();
 #endif
@@ -525,7 +525,7 @@ int CEsattoController::getFirmwareVersion(std::string &sVersion)
 	// parse output
 	try {
 		jResp = json::parse(sResp);
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getFirmwareVersion] response : " << jResp.dump(2) << std::endl;
         m_sLogFile.flush();
 #endif
@@ -533,7 +533,7 @@ int CEsattoController::getFirmwareVersion(std::string &sVersion)
 		m_sWebVer = jResp.at("res").at("get").at("SWVERS").at("SWWEB").get<std::string>();
 	}
     catch (json::exception& e) {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getFirmwareVersion] json exception : " << e.what() << " - " << e.id << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getFirmwareVersion] json exception response : " << sResp << std::endl;
         m_sLogFile.flush();
@@ -544,7 +544,7 @@ int CEsattoController::getFirmwareVersion(std::string &sVersion)
 
     m_fFirmwareVersion = std::stof(m_sAppVer);
     
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getFirmwareVersion] szResp     : " << sResp << std::endl;
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getFirmwareVersion] pszVersion : " << sVersion << std::endl;
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getFirmwareVersion] m_fFirmwareVersion : " << m_fFirmwareVersion << std::endl;
@@ -561,7 +561,7 @@ int CEsattoController::getModelName(std::string &sModelName)
 	json jCmd;
 	json jResp;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getModelName] Called." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -575,7 +575,7 @@ int CEsattoController::getModelName(std::string &sModelName)
 	}
 
 	jCmd["req"]["get"]["MODNAME"]="";
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getModelName] jCmd : " << jCmd.dump() << std::endl;
     m_sLogFile.flush();
 #endif
@@ -589,14 +589,14 @@ int CEsattoController::getModelName(std::string &sModelName)
 	// parse output
 	try {
 		jResp = json::parse(sResp);
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getModelName] response : " << jResp.dump(2) << std::endl;
         m_sLogFile.flush();
 #endif
 		m_sModelName = jResp.at("res").at("get").at("MODNAME").get<std::string>();
 	}
     catch (json::exception& e) {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getModelName] json exception : " << e.what() << " - " << e.id << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getModelName] json exception response : " << sResp << std::endl;
         m_sLogFile.flush();
@@ -626,7 +626,7 @@ int CEsattoController::getTemperature(double &dTemperature, int nTempProbe)
 	json jCmd;
 	json jResp;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getTemperature] Called." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -646,7 +646,7 @@ int CEsattoController::getTemperature(double &dTemperature, int nTempProbe)
             break;
     }
 	
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getTemperature] jCmd : " << jCmd.dump() << std::endl;
     m_sLogFile.flush();
 #endif
@@ -660,7 +660,7 @@ int CEsattoController::getTemperature(double &dTemperature, int nTempProbe)
 	// parse output
 	try {
 		jResp = json::parse(sResp);
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getTemperature] response : " << jResp.dump(2) << std::endl;
         m_sLogFile.flush();
 #endif
@@ -678,7 +678,7 @@ int CEsattoController::getTemperature(double &dTemperature, int nTempProbe)
 
 	}
     catch (json::exception& e) {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getTemperature] json exception : " << e.what() << " - " << e.id << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getTemperature] json exception response : " << sResp << std::endl;
         m_sLogFile.flush();
@@ -686,21 +686,21 @@ int CEsattoController::getTemperature(double &dTemperature, int nTempProbe)
         return ERR_CMDFAILED;
     }
 	catch(std::invalid_argument& e){
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getTemperature] stod invalid_argument exception : " << e.what() << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getTemperature] json exception response : " << sResp << std::endl;
         m_sLogFile.flush();
 #endif
 	}
 	catch(std::out_of_range& e){
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getTemperature] stod out_of_range exception : " << e.what() << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getTemperature] json exception response : " << sResp << std::endl;
         m_sLogFile.flush();
 #endif
 	}
     catch(const std::exception& e) {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getTemperature] conversion exception : " << e.what() << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getTemperature] json exception response : " << sResp << std::endl;
         m_sLogFile.flush();
@@ -716,7 +716,7 @@ int CEsattoController::getPosLimit(int &nMin, int &nMax)
 	if(!m_bIsConnected)
 		return ERR_COMMNOLINK;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getPosLimit] Called." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -734,7 +734,7 @@ int CEsattoController::setPosLimit(int nMin, int nMax)
     json jCmd;
     json jResp;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setPosLimit] Called." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -744,7 +744,7 @@ int CEsattoController::setPosLimit(int nMin, int nMax)
 
 
     jCmd["req"]["set"]["MOT1"]["CAL_MINPOS"]=nMin;
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setPosLimit] setting new min pos to : " << nMin << std::endl;
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setPosLimit] jCmd : " << jCmd.dump() << std::endl;
     m_sLogFile.flush();
@@ -759,12 +759,12 @@ int CEsattoController::setPosLimit(int nMin, int nMax)
     // parse output
     try {
         jResp = json::parse(sResp);
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setPosLimit] response : " << jResp.dump(2) << std::endl;
         m_sLogFile.flush();
 #endif
         if(jResp.at("res").at("set").at("MOT1").at("CAL_MINPOS") != "done") {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setPosLimit] **** ERROR **** setPosLimit min failed : " << nErr << std::endl;
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setPosLimit] **** ERROR **** setPosLimit response   : " << sResp << std::endl;
             m_sLogFile.flush();
@@ -772,13 +772,13 @@ int CEsattoController::setPosLimit(int nMin, int nMax)
             return ERR_CMDFAILED;
         }
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setPosLimit] response : " << jResp.dump(2) << std::endl;
         m_sLogFile.flush();
 #endif
     }
     catch (json::exception& e) {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setPosLimit] json exception : " << e.what() << " - " << e.id << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setPosLimit] json exception response : " << sResp << std::endl;
         m_sLogFile.flush();
@@ -790,7 +790,7 @@ int CEsattoController::setPosLimit(int nMin, int nMax)
     jCmd.clear();
     jResp.clear();
     jCmd["req"]["set"]["MOT1"]["CAL_MAXPOS"]=nMax;
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setPosLimit] setting new max pos to : " << nMax << std::endl;
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setPosLimit] jCmd : " << jCmd.dump() << std::endl;
     m_sLogFile.flush();
@@ -804,12 +804,12 @@ int CEsattoController::setPosLimit(int nMin, int nMax)
     // parse output
     try {
         jResp = json::parse(sResp);
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setPosLimit] response : " << jResp.dump(2) << std::endl;
         m_sLogFile.flush();
 #endif
         if(jResp.at("res").at("set").at("MOT1").at("CAL_MAXPOS") != "done") {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setPosLimit] **** ERROR **** setPosLimit max failed   : " << nErr << std::endl;
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setPosLimit] **** ERROR **** setPosLimit max response : " << sResp << std::endl;
             m_sLogFile.flush();
@@ -818,7 +818,7 @@ int CEsattoController::setPosLimit(int nMin, int nMax)
         }
     }
     catch (json::exception& e) {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setPosLimit] json exception : " << e.what() << " - " << e.id << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setPosLimit] json exception response : " << sResp << std::endl;
         m_sLogFile.flush();
@@ -838,7 +838,7 @@ int CEsattoController::setDirection(int nDir)
     json jResp;
     std::string sDir;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setDirection] Called." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -860,7 +860,7 @@ int CEsattoController::setDirection(int nDir)
 
     jCmd["req"]["set"]["MOT1"]["CAL_DIR"]=sDir;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setDirection] setting new max pos to : " << sDir << std::endl;
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setDirection] jCmd : " << jCmd.dump() << std::endl;
     m_sLogFile.flush();
@@ -874,12 +874,12 @@ int CEsattoController::setDirection(int nDir)
     // parse output
     try {
         jResp = json::parse(sResp);
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setDirection] response : " << jResp.dump(2) << std::endl;
         m_sLogFile.flush();
 #endif
         if(jResp.at("res").at("set").at("MOT1").at("CAL_DIR") != "done") {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setDirection] **** ERROR **** setDirection failed   : " << nErr << std::endl;
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setDirection] **** ERROR **** setDirection response : " << sResp << std::endl;
             m_sLogFile.flush();
@@ -888,7 +888,7 @@ int CEsattoController::setDirection(int nDir)
         }
     }
     catch (json::exception& e) {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setDirection] json exception : " << e.what() << " - " << e.id << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setDirection] json exception response : " << sResp << std::endl;
         m_sLogFile.flush();
@@ -903,7 +903,7 @@ int CEsattoController::getDirection(int &nDir)
 {
     int nErr = PLUGIN_OK;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getDirection] Called." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -922,7 +922,7 @@ int CEsattoController::getPosition(int &nPosition)
 	json jCmd;
 	json jResp;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getPosition] Called." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -951,7 +951,7 @@ int CEsattoController::isWifiEnabled(bool &bEnabled)
     json jResp;
     std::string sLanStatus;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [isWifiEnabled] Called." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -960,7 +960,7 @@ int CEsattoController::isWifiEnabled(bool &bEnabled)
         return ERR_COMMNOLINK;
 
     jCmd["req"]["get"]["LANSTATUS"]="";
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [isWifiEnabled] jCmd : " << jCmd.dump() << std::endl;
     m_sLogFile.flush();
 #endif
@@ -970,7 +970,7 @@ int CEsattoController::isWifiEnabled(bool &bEnabled)
     // parse output
     try {
         jResp = json::parse(sResp);
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [isWifiEnabled] response : " << std::endl << jResp.dump(2) << std::endl;
         m_sLogFile.flush();
 #endif
@@ -978,7 +978,7 @@ int CEsattoController::isWifiEnabled(bool &bEnabled)
         sLanStatus = jResp.at("res").at("get").at("LANCFG").get<std::string>();
     }
     catch (json::exception& e) {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [isWifiEnabled] json exception : " << e.what() << " - " << e.id << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [isWifiEnabled] json exception response : " << sResp << std::endl;
         m_sLogFile.flush();
@@ -991,7 +991,7 @@ int CEsattoController::isWifiEnabled(bool &bEnabled)
     else
         bEnabled = true;
 
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getWiFiConfig] sLanStatus  : " << sLanStatus << std::endl;
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getWiFiConfig] bEnabled   : " << (bEnabled?"Yes":"No") << std::endl;
     m_sLogFile.flush();
@@ -1007,7 +1007,7 @@ int CEsattoController::enableWiFi(bool bEnable)
     json jCmd;
     json jResp;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [enableWiFi] Called." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -1017,7 +1017,7 @@ int CEsattoController::enableWiFi(bool bEnable)
 
     jCmd["req"]["cmd"]["AP_SET_STATUS"]= (bEnable?"on":"off");
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [enableWiFi] jCmd : " << jCmd.dump() << std::endl;
     m_sLogFile.flush();
 #endif
@@ -1027,14 +1027,14 @@ int CEsattoController::enableWiFi(bool bEnable)
         return nErr;
     // parse output
     try {
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [enableWiFi] response : " << std::endl << jResp.dump(2) << std::endl;
         m_sLogFile.flush();
 #endif
         jResp = json::parse(sResp);
     }
     catch (json::exception& e) {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [enableWiFi] json exception : " << e.what() << " - " << e.id << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [enableWiFi] json exception response : " << sResp << std::endl;
         m_sLogFile.flush();
@@ -1054,7 +1054,7 @@ int CEsattoController::getWiFiConfig(int &nMode, std::string &sSSID_AP, std::str
     json jResp;
     std::string wifiMode;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getWiFiConfig] Called." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -1063,7 +1063,7 @@ int CEsattoController::getWiFiConfig(int &nMode, std::string &sSSID_AP, std::str
         return ERR_COMMNOLINK;
 
     jCmd["req"]["get"]["LANCFG"]="";
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getWiFiConfig] jCmd : " << jCmd.dump() << std::endl;
     m_sLogFile.flush();
 #endif
@@ -1073,7 +1073,7 @@ int CEsattoController::getWiFiConfig(int &nMode, std::string &sSSID_AP, std::str
     // parse output
     try {
         jResp = json::parse(sResp);
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getWiFiConfig] response : " << std::endl << jResp.dump(2) << std::endl;
         m_sLogFile.flush();
 #endif
@@ -1081,7 +1081,7 @@ int CEsattoController::getWiFiConfig(int &nMode, std::string &sSSID_AP, std::str
         wifiMode = jResp.at("res").at("get").at("LANCFG").get<std::string>();
     }
     catch (json::exception& e) {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getWiFiConfig] json exception : " << e.what() << " - " << e.id << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getWiFiConfig] json exception response : " << sResp << std::endl;
         m_sLogFile.flush();
@@ -1092,21 +1092,21 @@ int CEsattoController::getWiFiConfig(int &nMode, std::string &sSSID_AP, std::str
 
     if(wifiMode.find("ap+sta")!=-1){
         nMode = AP_STA;
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getWiFiConfig] nMode AP_STA"<< std::endl;
         m_sLogFile.flush();
 #endif
     }
     else if(wifiMode.find("ap")!=-1){
         nMode = AP;
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getWiFiConfig] nMode AP"<< std::endl;
         m_sLogFile.flush();
 #endif
     }
     else if(wifiMode.find("sta")!=-1){
         nMode = STA;
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getWiFiConfig] nMode STA"<< std::endl;
         m_sLogFile.flush();
 #endif
@@ -1115,7 +1115,7 @@ int CEsattoController::getWiFiConfig(int &nMode, std::string &sSSID_AP, std::str
     jCmd.clear();
 	jCmd["req"]["get"]["WIFIAP"]="";
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getWiFiConfig] jCmd : " << jCmd.dump() << std::endl;
     m_sLogFile.flush();
 #endif
@@ -1125,7 +1125,7 @@ int CEsattoController::getWiFiConfig(int &nMode, std::string &sSSID_AP, std::str
     // parse output
     try {
         jResp = json::parse(sResp);
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getWiFiConfig] response : " << std::endl << jResp.dump(2) << std::endl;
         m_sLogFile.flush();
 #endif
@@ -1134,7 +1134,7 @@ int CEsattoController::getWiFiConfig(int &nMode, std::string &sSSID_AP, std::str
         sPWD_AP = jResp.at("res").at("get").at("WIFIAP").at("PWD").get<std::string>();
     }
     catch (json::exception& e) {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getWiFiConfig] json exception : " << e.what() << " - " << e.id << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getWiFiConfig] json exception response : " << sResp << std::endl;
         m_sLogFile.flush();
@@ -1145,7 +1145,7 @@ int CEsattoController::getWiFiConfig(int &nMode, std::string &sSSID_AP, std::str
     jCmd.clear();
     jCmd["req"]["get"]["WIFISTA"]="";
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getWiFiConfig] jCmd : " << jCmd.dump() << std::endl;
     m_sLogFile.flush();
 #endif
@@ -1155,7 +1155,7 @@ int CEsattoController::getWiFiConfig(int &nMode, std::string &sSSID_AP, std::str
     // parse output
     try {
         jResp = json::parse(sResp);
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getWiFiConfig] response : " << std::endl << jResp.dump(2) << std::endl;
         m_sLogFile.flush();
 #endif
@@ -1164,7 +1164,7 @@ int CEsattoController::getWiFiConfig(int &nMode, std::string &sSSID_AP, std::str
         sPWD_STA = jResp.at("res").at("get").at("WIFISTA").at("PWD").get<std::string>();
     }
     catch (json::exception& e) {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getWiFiConfig] json exception : " << e.what() << " - " << e.id << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getWiFiConfig] json exception response : " << sResp << std::endl;
         m_sLogFile.flush();
@@ -1172,7 +1172,7 @@ int CEsattoController::getWiFiConfig(int &nMode, std::string &sSSID_AP, std::str
         return ERR_CMDFAILED;
     }
 
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getWiFiConfig] sSSID_AP  : " << sSSID_AP << std::endl;
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getWiFiConfig] sPWD_AP   : " << sPWD_AP << std::endl;
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getWiFiConfig] sSSID_STA : " << sSSID_STA << std::endl;
@@ -1191,7 +1191,7 @@ int CEsattoController::setWiFiConfig(int nMode, std::string sSSID_AP, std::strin
     json jResp;
     std::string wifiMode;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setWiFiConfig] Called." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -1202,7 +1202,7 @@ int CEsattoController::setWiFiConfig(int nMode, std::string sSSID_AP, std::strin
     if(nMode == AP || nMode == AP_STA) {
         // not sure we can change the SSID
         jCmd["req"]["set"]["WIFIAP"]["PWD"]=sPWD_AP;
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setWiFiConfig] jCmd : " << jCmd.dump() << std::endl;
         m_sLogFile.flush();
 #endif
@@ -1212,14 +1212,14 @@ int CEsattoController::setWiFiConfig(int nMode, std::string sSSID_AP, std::strin
             return nErr;
         // parse output
         try {
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setWiFiConfig] response : " << std::endl << jResp.dump(2) << std::endl;
             m_sLogFile.flush();
 #endif
             jResp = json::parse(sResp);
         }
         catch (json::exception& e) {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setWiFiConfig] json exception : " << e.what() << " - " << e.id << std::endl;
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setWiFiConfig] json exception response : " << sResp << std::endl;
             m_sLogFile.flush();
@@ -1230,7 +1230,7 @@ int CEsattoController::setWiFiConfig(int nMode, std::string sSSID_AP, std::strin
 
     if(nMode == STA || nMode == AP_STA) {
         jCmd["req"]["set"]["WIFISTA"]["PWD"]=sPWD_STA;
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setWiFiConfig] jCmd : " << jCmd.dump() << std::endl;
         m_sLogFile.flush();
 #endif
@@ -1240,14 +1240,14 @@ int CEsattoController::setWiFiConfig(int nMode, std::string sSSID_AP, std::strin
             return nErr;
         // parse output
         try {
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setWiFiConfig] response : " << std::endl << jResp.dump(2) << std::endl;
             m_sLogFile.flush();
 #endif
             jResp = json::parse(sResp);
         }
         catch (json::exception& e) {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setWiFiConfig] json exception : " << e.what() << " - " << e.id << std::endl;
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setWiFiConfig] json exception response : " << sResp << std::endl;
             m_sLogFile.flush();
@@ -1268,7 +1268,7 @@ int CEsattoController::getSTAIpConfig(std::string &IpAddress, std::string &subne
 
     jCmd["req"]["get"]["WIFISTA"]="";
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getSTAIpConfig] jCmd : " << jCmd.dump() << std::endl;
     m_sLogFile.flush();
 #endif
@@ -1278,7 +1278,7 @@ int CEsattoController::getSTAIpConfig(std::string &IpAddress, std::string &subne
     // parse output
     try {
         jResp = json::parse(sResp);
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getSTAIpConfig] response : " << std::endl << jResp.dump(2) << std::endl;
         m_sLogFile.flush();
 #endif
@@ -1289,7 +1289,7 @@ int CEsattoController::getSTAIpConfig(std::string &IpAddress, std::string &subne
         dnsIpAdress = jResp.at("res").at("get").at("WIFISTA").at("DNS").get<std::string>();
     }
     catch (json::exception& e) {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getSTAIpConfig] json exception : " << e.what() << " - " << e.id << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getSTAIpConfig] json exception response : " << sResp << std::endl;
         m_sLogFile.flush();
@@ -1297,7 +1297,7 @@ int CEsattoController::getSTAIpConfig(std::string &IpAddress, std::string &subne
         return ERR_CMDFAILED;
     }
 
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getSTAIpConfig] IpAddress        : " << IpAddress << std::endl;
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getSTAIpConfig] subnetMask       : " << subnetMask << std::endl;
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getSTAIpConfig] gatewayIpAddress : " << gatewayIpAddress << std::endl;
@@ -1315,7 +1315,7 @@ int CEsattoController::setSTAIpConfig(std::string IpAddress, std::string subnetM
     json jCmd;
     json jResp;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setSTAIpConfig] Called." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -1328,13 +1328,13 @@ int CEsattoController::setSTAIpConfig(std::string IpAddress, std::string subnetM
     jCmd["req"]["set"]["WIFISTA"]["GW"]=gatewayIpAddress;
     jCmd["req"]["set"]["WIFISTA"]["DNS"]=dnsIpAdress;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setSTAIpConfig] jCmd : " << jCmd.dump() << std::endl;
     m_sLogFile.flush();
 #endif
     nErr = ctrlCommand(jCmd.dump(), sResp);
     if(nErr) {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setSTAIpConfig] **** ERROR **** setting Station network settings failed : " << nErr << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setSTAIpConfig] **** ERROR **** response     : " << sResp << std::endl;
         m_sLogFile.flush();
@@ -1353,7 +1353,7 @@ int CEsattoController::syncMotorPosition(int nPos)
 	json jCmd;
 	json jResp;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [syncMotorPosition] Called." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -1362,7 +1362,7 @@ int CEsattoController::syncMotorPosition(int nPos)
 		return ERR_COMMNOLINK;
 
     jCmd["req"]["set"]["MOT1"]["ABS_POS"]=nPos;
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [syncMotorPosition] jCmd : " << jCmd.dump() << std::endl;
     m_sLogFile.flush();
 #endif
@@ -1371,13 +1371,13 @@ int CEsattoController::syncMotorPosition(int nPos)
 		return nErr;
 	// parse output
 	try {
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [syncMotorPosition] response : " << std::endl << jResp.dump(2) << std::endl;
         m_sLogFile.flush();
 #endif
 		jResp = json::parse(sResp);
         if(jResp.at("res").at("set").at("MOT1").at("ABS_POS") != "done") {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [syncMotorPosition] **** ERROR **** syncMotorPosition failed   : " << nErr << std::endl;
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [syncMotorPosition] **** ERROR **** syncMotorPosition response : " << sResp << std::endl;
             m_sLogFile.flush();
@@ -1386,7 +1386,7 @@ int CEsattoController::syncMotorPosition(int nPos)
         }
 	}
 	catch (json::exception& e) {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [syncMotorPosition] json exception : " << e.what() << " - " << e.id << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [syncMotorPosition] json exception response : " << sResp << std::endl;
         m_sLogFile.flush();
@@ -1404,7 +1404,7 @@ int CEsattoController::getMotorSettings(MotorSettings &settings)
 {
     int nErr = PLUGIN_OK;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getMotorSettings] Called." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -1426,7 +1426,7 @@ int CEsattoController::getMotorSettings(MotorSettings &settings)
     settings.backlash =  m_RunSettings.backlash;
 
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getMotorSettings] settings.runSpeed    :" << settings.runSpeed  << std::endl;
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getMotorSettings] settings.accSpeed    :" << settings.accSpeed  << std::endl;
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [getMotorSettings] settings.decSpeed    :" << settings.decSpeed  << std::endl;
@@ -1449,7 +1449,7 @@ int CEsattoController::setMotorSettings(MotorSettings &settings)
     json jCmd;
     json jResp;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setMotorSettings] Called." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -1466,13 +1466,13 @@ int CEsattoController::setMotorSettings(MotorSettings &settings)
     jCmd["req"]["set"]["MOT1"]["FnRUN_CURR_HOLD"]=settings.holdCurrent;
     jCmd["req"]["set"]["MOT1"]["CAL_BKLASH"]=settings.backlash;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setMotorSettings] jCmd : " << jCmd.dump() << std::endl;
     m_sLogFile.flush();
 #endif
     nErr = ctrlCommand(jCmd.dump(), sResp);
     if(nErr) {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setMotorSettings] **** ERROR **** setting motor settings failed : " << nErr << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [setMotorSettings] **** ERROR **** setMotorSettings response     : " << sResp << std::endl;
         m_sLogFile.flush();
@@ -1498,7 +1498,7 @@ int CEsattoController::startCalibration()
     json jCmd;
     json jResp;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [startCalibration] Called." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -1507,13 +1507,13 @@ int CEsattoController::startCalibration()
         return ERR_COMMNOLINK;
 
     jCmd["req"]["set"]["MOT1"]["CAL_FOCUSER"]="Init";
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [startCalibration] jCmd : " << jCmd.dump() << std::endl;
     m_sLogFile.flush();
 #endif
     nErr = ctrlCommand(jCmd.dump(), sResp);
     if(nErr) {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [startCalibration] **** ERROR **** error initializing calibartion: " << nErr << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [startCalibration] **** ERROR **** startCalibration response     : " << sResp << std::endl;
         m_sLogFile.flush();
@@ -1531,7 +1531,7 @@ int CEsattoController::storeAsMinPosition()
     json jCmd;
     json jResp;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [storeAsMinPosition] Called." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -1542,13 +1542,13 @@ int CEsattoController::storeAsMinPosition()
     syncMotorPosition(0); // we want the minimum position to be 0
     startCalibration();   // start calibration and save current position as minimum. The settings dialog process will ask the user to set the focuser all the way in
     jCmd["req"]["set"]["MOT1"]["CAL_FOCUSER"]="StoreAsMinPos";
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [storeAsMinPosition] jCmd : " << jCmd.dump() << std::endl;
     m_sLogFile.flush();
 #endif
     nErr = ctrlCommand(jCmd.dump(), sResp);
     if(nErr) {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [storeAsMinPosition] **** ERROR **** setting motor initial position failed : " << nErr << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [storeAsMinPosition] **** ERROR **** StoreAsMinPos response     : " << sResp << std::endl;
         m_sLogFile.flush();
@@ -1566,7 +1566,7 @@ int CEsattoController::storeAsMaxPosition()
     json jCmd;
     json jResp;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [storeAsMaxPosition] Called." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -1575,13 +1575,13 @@ int CEsattoController::storeAsMaxPosition()
         return ERR_COMMNOLINK;
 
     jCmd["req"]["set"]["MOT1"]["CAL_FOCUSER"]="StoreAsMaxPos";
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [storeAsMaxPosition] jCmd : " << jCmd.dump() << std::endl;
     m_sLogFile.flush();
 #endif
     nErr = ctrlCommand(jCmd.dump(), sResp);
     if(nErr) {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [storeAsMaxPosition] **** ERROR **** setting motor max position failed : " << nErr << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [storeAsMaxPosition] **** ERROR **** StoreAsMinPos response     : " << sResp << std::endl;
         m_sLogFile.flush();
@@ -1599,7 +1599,7 @@ int CEsattoController::findMaxPos()
     json jCmd;
     json jResp;
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [findMaxPos] Called." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -1608,13 +1608,13 @@ int CEsattoController::findMaxPos()
         return ERR_COMMNOLINK;
 
     jCmd["req"]["set"]["MOT1"]["CAL_FOCUSER"]="GoOutToFindMaxPos";
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [findMaxPos] jCmd : " << jCmd.dump() << std::endl;
     m_sLogFile.flush();
 #endif
     nErr = ctrlCommand(jCmd.dump(), sResp);
     if(nErr) {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [findMaxPos] **** ERROR **** sending motor to max position failed : " << nErr << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [findMaxPos] **** ERROR **** GoOutToFindMaxPos response     : " << sResp << std::endl;
         m_sLogFile.flush();
@@ -1644,6 +1644,85 @@ bool CEsattoController::isFocuserMoving()
 }
 
 
+int CEsattoController::setLeds(std::string sLedState)
+{
+	int nErr = PLUGIN_OK;
+
+	if(!m_bIsConnected)
+		return ERR_COMMNOLINK;
+	std::string sResp;
+	json jCmd;
+	json jResp;
+
+#if defined ARCO_PLUGIN_DEBUG && ARCO_PLUGIN_DEBUG >= 2
+	m_sLogFile << "["<<getTimeStamp()<<"]"<< " [" << __func__ << "] Called." << std::endl;
+	m_sLogFile.flush();
+#endif
+	std::transform(sLedState.begin(), sLedState.end(), sLedState.begin(),  [](unsigned char c) -> unsigned char { return std::tolower(c); });
+	jCmd["req"]["cmd"]["DIMLEDS"]=sLedState;
+	nErr = ctrlCommand(jCmd.dump(), sResp);
+	if(nErr)
+		return false;
+	if(!sResp.length()) {
+		return ERR_CMDFAILED;
+	}
+	try {
+		jResp = json::parse(sResp);
+		if(jResp.at("res").at("cmd").at("cmd") != "done") {
+			return ERR_CMDFAILED;
+		}
+	}
+	catch (json::exception& e) {
+#if defined ARCO_PLUGIN_DEBUG
+		m_sLogFile << "["<<getTimeStamp()<<"]"<< " [" << __func__ << "] json exception : " << e.what() << " - " << e.id << std::endl;
+		m_sLogFile << "["<<getTimeStamp()<<"]"<< " [" << __func__ << "] json exception response : " << sResp << std::endl;
+		m_sLogFile.flush();
+#endif
+		return ERR_CMDFAILED;
+	}
+	return nErr;
+}
+
+int CEsattoController::getLeds(std::string &sLedState)
+{
+	int nErr = PLUGIN_OK;
+
+	if(!m_bIsConnected)
+		return ERR_COMMNOLINK;
+	std::string sResp;
+	json jCmd;
+	json jResp;
+
+#if defined ARCO_PLUGIN_DEBUG && ARCO_PLUGIN_DEBUG >= 2
+	m_sLogFile << "["<<getTimeStamp()<<"]"<< " [" << __func__ << "] Called." << std::endl;
+	m_sLogFile.flush();
+#endif
+	jCmd["req"]["get"]["DIMLEDS"]="";
+	nErr = ctrlCommand(jCmd.dump(), sResp);
+	if(nErr)
+		return false;
+	if(!sResp.length()) {
+		return ERR_CMDFAILED;
+	}
+	try {
+		jResp = json::parse(sResp);
+		if(jResp.at("res").at("get").contains("DIMLEDS")) {
+			sLedState.assign(jResp.at("res").at("get").at("DIMLEDS").get<std::string>());
+		}
+	}
+	catch (json::exception& e) {
+#if defined ARCO_PLUGIN_DEBUG
+		m_sLogFile << "["<<getTimeStamp()<<"]"<< " [" << __func__ << "] json exception : " << e.what() << " - " << e.id << std::endl;
+		m_sLogFile << "["<<getTimeStamp()<<"]"<< " [" << __func__ << "] json exception response : " << sResp << std::endl;
+		m_sLogFile.flush();
+#endif
+		return ERR_CMDFAILED;
+	}
+	return nErr;
+}
+
+
+
 #pragma mark command and response functions
 
 int CEsattoController::ctrlCommand(const std::string sCmd, std::string &sResult, int nTimeout)
@@ -1655,7 +1734,7 @@ int CEsattoController::ctrlCommand(const std::string sCmd, std::string &sResult,
 	std::size_t endPos;
 	std::string sLocalResult;
 	int nbTries = 0;
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [ctrlCommand] Called." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -1665,7 +1744,7 @@ int CEsattoController::ctrlCommand(const std::string sCmd, std::string &sResult,
         return ERR_COMMNOLINK;
 	nErr = m_pSerx->bytesWaitingRx(nBytesWaiting);
 	if(nBytesWaiting) {
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
 		m_sLogFile << "["<<getTimeStamp()<<"]"<< " [ctrlCommand] calling purgeTxR"<< std::endl;
 		m_sLogFile.flush();
 #endif
@@ -1673,7 +1752,7 @@ int CEsattoController::ctrlCommand(const std::string sCmd, std::string &sResult,
 	}
 
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
 	m_sLogFile << "["<<getTimeStamp()<<"]"<< " [ctrlCommand] Sending : " << sCmd << std::endl;
 	m_sLogFile.flush();
 #endif
@@ -1681,7 +1760,7 @@ int CEsattoController::ctrlCommand(const std::string sCmd, std::string &sResult,
 	nErr = m_pSerx->writeFile((void *) (sCmd.c_str()) , sCmd.length(), ulBytesWrite);
 	m_pSerx->flushTx();
 	if(nErr){
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
 		m_sLogFile << "["<<getTimeStamp()<<"]"<< " [ctrlCommand] writeFile error  : " << nErr << std::endl;
 		m_sLogFile.flush();
 #endif
@@ -1690,21 +1769,21 @@ int CEsattoController::ctrlCommand(const std::string sCmd, std::string &sResult,
 
 	do {
 		// read response
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
 		m_sLogFile << "["<<getTimeStamp()<<"]"<< " [ctrlCommand] Getting response." << std::endl;
 		m_sLogFile.flush();
 #endif
 
 		nErr = readResponse(sLocalResult, nTimeout);
 		if(nErr){
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
 			m_sLogFile << "["<<getTimeStamp()<<"]"<< " [ctrlCommand] readResponse error  : " << nErr << std::endl;
 			m_sLogFile.flush();
 #endif
 			return nErr;
 		}
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
 		m_sLogFile << "["<<getTimeStamp()<<"]"<< " [ctrlCommand] response : " << sLocalResult << std::endl;
 		m_sLogFile.flush();
 #endif
@@ -1721,7 +1800,7 @@ int CEsattoController::ctrlCommand(const std::string sCmd, std::string &sResult,
 
 	}
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
 	m_sLogFile << "["<<getTimeStamp()<<"]"<< " [ctrlCommand] final response : " << sResult << std::endl;
 	m_sLogFile.flush();
 #endif
@@ -1740,7 +1819,7 @@ int CEsattoController::readResponse(std::string &sResp, int nTimeout)
     int nBytesWaiting = 0 ;
     int nbTimeouts = 0;
 
-#ifdef PLUGIN_DEBUG
+#ifdef ESATTO_PLUGIN_DEBUG
 	std::string hexBuff;
 #endif
 
@@ -1749,7 +1828,7 @@ int CEsattoController::readResponse(std::string &sResp, int nTimeout)
 
     do {
         nErr = m_pSerx->bytesWaitingRx(nBytesWaiting);
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 3
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 3
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [readResponse] nBytesWaiting      : " << nBytesWaiting << std::endl;
         m_sLogFile << "["<<getTimeStamp()<<"]"<< " [readResponse] nBytesWaiting nErr : " << nErr << std::endl;
         m_sLogFile.flush();
@@ -1757,7 +1836,7 @@ int CEsattoController::readResponse(std::string &sResp, int nTimeout)
         if(!nBytesWaiting) {
             nbTimeouts += MAX_READ_WAIT_TIMEOUT;
             if(nbTimeouts >= nTimeout) {
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 3
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 3
                 m_sLogFile << "["<<getTimeStamp()<<"]"<< " [readResponse] bytesWaitingRx timeout, no data for " << nbTimeouts << " ms"<< std::endl;
 				hexdump(pszBuf, int(ulBytesRead), hexBuff);
 				m_sLogFile << "["<<getTimeStamp()<<"]"<< " [readResponse] hexdump  " << hexBuff << std::endl;
@@ -1777,20 +1856,20 @@ int CEsattoController::readResponse(std::string &sResp, int nTimeout)
             break; // buffer is full.. there is a problem !!
         }
         if(nErr) {
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [readResponse] readFile error : " << nErr << std::endl;
             m_sLogFile.flush();
 #endif
             return nErr;
         }
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 3
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 3
 		m_sLogFile << "["<<getTimeStamp()<<"]"<< " [readResponse] readFile nBytesWaiting : " << nBytesWaiting << std::endl;
 		m_sLogFile << "["<<getTimeStamp()<<"]"<< " [readResponse] readFile ulBytesRead   : " << ulBytesRead << std::endl;
 		m_sLogFile.flush();
 #endif
 
         if (ulBytesRead != nBytesWaiting) { // timeout
-#if defined PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [readResponse] rreadFile Timeout Error." << std::endl;
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [readResponse] readFile nBytesWaiting : " << nBytesWaiting << std::endl;
             m_sLogFile << "["<<getTimeStamp()<<"]"<< " [readResponse] readFile ulBytesRead   : " << ulBytesRead << std::endl;
@@ -1811,7 +1890,7 @@ int CEsattoController::readResponse(std::string &sResp, int nTimeout)
 		sResp.assign(pszBuf);
 	}
 
-#if defined PLUGIN_DEBUG && PLUGIN_DEBUG >= 3
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 3
     m_sLogFile << "["<<getTimeStamp()<<"]"<< " [readResponse] sResp : " << sResp << std::endl;
     m_sLogFile.flush();
 #endif
@@ -1819,7 +1898,7 @@ int CEsattoController::readResponse(std::string &sResp, int nTimeout)
     return nErr;
 }
 
-#ifdef PLUGIN_DEBUG
+#ifdef ESATTO_PLUGIN_DEBUG
 void  CEsattoController::hexdump( char *inputData, int inputSize,  std::string &outHex)
 {
 	int idx=0;

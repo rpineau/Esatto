@@ -3,13 +3,26 @@
 #ifndef __X2Focuser_H_
 #define __X2Focuser_H_
 
-#include "../../licensedinterfaces/focuserdriverinterface.h"
+
+#include "../../licensedinterfaces/theskyxfacadefordriversinterface.h"
+#include "../../licensedinterfaces/sleeperinterface.h"
+#include "../../licensedinterfaces/loggerinterface.h"
+#include "../../licensedinterfaces/basiciniutilinterface.h"
+#include "../../licensedinterfaces/mutexinterface.h"
+#include "../../licensedinterfaces/basicstringinterface.h"
+#include "../../licensedinterfaces/serxinterface.h"
+#include "../../licensedinterfaces/sberrorx.h"
 #include "../../licensedinterfaces/serialportparams2interface.h"
 #include "../../licensedinterfaces/modalsettingsdialoginterface.h"
-#include "../../licensedinterfaces/focuser/focusertemperatureinterface.h"
 #include "../../licensedinterfaces/x2guiinterface.h"
+#include "../../licensedinterfaces/focuserdriverinterface.h"
+#include "../../licensedinterfaces/focuser/focusertemperatureinterface.h"
+#include "../../licensedinterfaces/rotatordriverinterface.h"
+#include "../../licensedinterfaces/multiconnectiondeviceinterface.h"
+
 
 #include "StopWatch.h"
+#include "x2rotator.h"
 #include "Esatto.h"
 
 // Forward declare the interfaces that this device is dependent upon
@@ -28,14 +41,7 @@ class TickCountInterface;
 #define POS_LIMIT           "PosLimit"
 #define POS_LIMIT_ENABLED   "PosLimitEnable"
 
-#if defined(SB_WIN_BUILD)
-#define DEF_PORT_NAME					"COM1"
-#elif defined(SB_MAC_BUILD)
-#define DEF_PORT_NAME					"/dev/cu.KeySerial1"
-#elif defined(SB_LINUX_BUILD)
-#define DEF_PORT_NAME					"/dev/ttyUSB0"
-#endif
-
+#define DEF_PORT_NAME				"No port found"
 #define TMP_BUF_SIZE    1024
 
 /*!
@@ -45,7 +51,16 @@ class TickCountInterface;
 
 Use this example to write an X2Focuser driver.
 */
-class X2Focuser : public FocuserDriverInterface, public SerialPortParams2Interface, public ModalSettingsDialogInterface, public X2GUIEventInterface, public FocuserTemperatureInterface
+#ifndef __CLASS_ATTRIBUTE__
+#if defined(WIN32)
+#define __CLASS_ATTRIBUTE__(x)
+#else
+#define __CLASS_ATTRIBUTE__(x) __attribute__(x)
+#endif
+#endif
+
+
+class __CLASS_ATTRIBUTE__((weak,visibility("default"))) X2Focuser : public FocuserDriverInterface, public SerialPortParams2Interface, public ModalSettingsDialogInterface, public X2GUIEventInterface, public FocuserTemperatureInterface, public MultiConnectionDeviceInterface
 {
 public:
 	X2Focuser(const char                        *pszDisplayName,
@@ -120,7 +135,7 @@ public:
     //SerialPortParams2Interface
     virtual void                                portName(BasicStringInterface& str) const			;
     virtual void                                setPortName(const char* pszPort)						;
-    virtual unsigned int                        baudRate() const			{return 9600;};
+    virtual unsigned int                        baudRate() const			{return 115200;};
     virtual void                                setBaudRate(unsigned int)	{};
     virtual bool                                isBaudRateFixed() const		{return true;}
 
@@ -128,6 +143,15 @@ public:
     virtual void                                setParity(const SerXInterface::Parity& parity){};
     virtual bool                                isParityFixed() const		{return true;}
 
+
+	// MultiConnectionDeviceInterface
+	virtual int deviceIdentifier(BasicStringInterface &sIdentifier);
+	virtual int isConnectionPossible(const int &nPeerArraySize, MultiConnectionDeviceInterface **ppPeerArray, bool &bConnectionPossible);
+	virtual int useResource(MultiConnectionDeviceInterface *pPeer);
+	virtual int swapResource(MultiConnectionDeviceInterface *pPeer);
+
+	SerXInterface*  m_pSavedSerX;
+	MutexInterface* m_pSavedMutex;
 
 private:
 

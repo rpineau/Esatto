@@ -39,14 +39,16 @@ X2Focuser::X2Focuser(const char* pszDisplayName,
     // Read in settings
     if (m_pIniUtil) {
     }
-	m_Esatto.SetSerxPointer(m_pSerX);
+	m_pIOMutex = pIOMutexIn;
+	m_pSavedMutex = pIOMutexIn;
+
+	m_pSavedSerX = pSerXIn;
+	m_Esatto.SetSerxPointer(pSerXIn);
 }
 
 X2Focuser::~X2Focuser()
 {
     //Delete objects used through composition
-	if (GetSerX())
-		delete GetSerX();
 	if (GetTheSkyXFacadeForDrivers())
 		delete GetTheSkyXFacadeForDrivers();
 	if (GetSleeper())
@@ -55,9 +57,11 @@ X2Focuser::~X2Focuser()
 		delete GetSimpleIniUtil();
 	if (GetLogger())
 		delete GetLogger();
-	if (GetMutex())
-		delete GetMutex();
 
+	if (m_pSavedSerX)
+		delete m_pSavedSerX;
+	if (m_pSavedMutex)
+		delete m_pSavedMutex;
 }
 
 #pragma mark - DriverRootInterface
@@ -81,11 +85,11 @@ int	X2Focuser::queryAbstraction(const char* pszName, void** ppVal)
     else if (!strcmp(pszName, FocuserTemperatureInterface_Name))
         *ppVal = dynamic_cast<FocuserTemperatureInterface*>(this);
 
-    else if (!strcmp(pszName, ModalSettingsDialogInterface_Name))
-        *ppVal = dynamic_cast<ModalSettingsDialogInterface*>(this);
-
     else if (!strcmp(pszName, SerialPortParams2Interface_Name))
         *ppVal = dynamic_cast<SerialPortParams2Interface*>(this);
+
+	else if (!strcmp(pszName, MultiConnectionDeviceInterface_Name))
+		*ppVal = dynamic_cast<MultiConnectionDeviceInterface*>(this);
 
     return SB_OK;
 }
@@ -98,7 +102,7 @@ void X2Focuser::driverInfoDetailedInfo(BasicStringInterface& str) const
 
 double X2Focuser::driverInfoVersion(void) const
 {
-	return PLUGIN_VERSION;
+	return ESATTO_PLUGIN_VERSION;
 }
 
 void X2Focuser::deviceInfoNameShort(BasicStringInterface& str) const
@@ -179,11 +183,14 @@ int	X2Focuser::terminateLink(void)
     if(!m_bLinked)
         return SB_OK;
 
-    X2MutexLocker ml(GetMutex());
-    m_Esatto.haltFocuser();
-    m_Esatto.Disconnect();
-    m_bLinked = false;
-
+	X2MutexLocker ml(GetMutex());
+	// m_PegasusPPBAExtFoc.Disconnect(m_nInstanceCount);
+	m_Esatto.haltFocuser();
+	m_Esatto.Disconnect();
+	// We're not connected, so revert to our saved interfaces
+	m_Esatto.SetSerxPointer(m_pSavedSerX);
+	m_pIOMutex = m_pSavedMutex;
+	m_bLinked = false;
 	return SB_OK;
 }
 
@@ -624,3 +631,60 @@ void X2Focuser::portNameOnToCharPtr(char* pszPort, const int& nMaxSize) const
 
 
 
+int X2Focuser::deviceIdentifier(BasicStringInterface &sIdentifier)
+{
+	sIdentifier = "ESATTO_ARCO";
+	return SB_OK;
+}
+
+int X2Focuser::isConnectionPossible(const int &nPeerArraySize, MultiConnectionDeviceInterface **ppPeerArray, bool &bConnectionPossible)
+{
+	for (int nIndex = 0; nIndex < nPeerArraySize; ++nIndex)
+	{
+		X2Rotator *pPeer = dynamic_cast<X2Rotator*>(ppPeerArray[nIndex]);
+		if (pPeer == NULL)
+		{
+			bConnectionPossible = false;
+			return ERR_POINTER;
+		}
+	}
+
+	bConnectionPossible = true;
+	return SB_OK;
+
+}
+
+int X2Focuser::useResource(MultiConnectionDeviceInterface *pPeer)
+{
+	X2Rotator *pFocuserPeer = dynamic_cast<X2Rotator*>(pPeer);
+	if (pFocuserPeer == NULL) {
+		return ERR_POINTER; // Peer must be a power control  pointer
+	}
+
+	// Use the resources held by the specified peer
+	m_pIOMutex = pFocuserPeer->m_pSavedMutex;
+	m_Esatto.SetSerxPointer(pFocuserPeer->m_pSavedSerX);
+	return SB_OK;
+
+}
+
+int X2Focuser::swapResource(MultiConnectionDeviceInterface *pPeer)
+{
+
+	X2Rotator *pFocuserPeer = dynamic_cast<X2Rotator*>(pPeer);
+	if (pFocuserPeer == NULL) {
+		return ERR_POINTER; //  Peer must be a power control  pointer
+	}
+
+	// Swap this driver instance's resources for the ones held by pPeer
+	MutexInterface* pTempMutex = m_pSavedMutex;
+	SerXInterface*  pTempSerX = m_pSavedSerX;
+
+	m_pSavedMutex = pFocuserPeer->m_pSavedMutex;
+	m_pSavedSerX = pFocuserPeer->m_pSavedSerX;
+
+	pFocuserPeer->m_pSavedMutex = pTempMutex;
+	pFocuserPeer->m_pSavedSerX = pTempSerX;
+
+	return SB_OK;
+}

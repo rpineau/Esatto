@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>X2Focus</class>
+ <widget class="QDialog" name="X2Focus">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>380</width>
+    <height>455</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>380</width>
+    <height>455</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>380</width>
+    <height>455</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Arco Rotator</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout_12">
+   <item>
+    <widget class="X2Form" name="X2Form">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>99999</width>
+       <height>99999</height>
+      </size>
+     </property>
+     <property name="sizeIncrement">
+      <size>
+       <width>1</width>
+       <height>1</height>
+      </size>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <widget class="QGroupBox" name="groupBox">
+      <property name="geometry">
+       <rect>
+        <x>8</x>
+        <y>200</y>
+        <width>336</width>
+        <height>161</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Rotator settings</string>
+      </property>
+      <widget class="QCheckBox" name="reverseDir">
+       <property name="geometry">
+        <rect>
+         <x>24</x>
+         <y>72</y>
+         <width>136</width>
+         <height>24</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Reverse Direction</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_2">
+       <property name="geometry">
+        <rect>
+         <x>24</x>
+         <y>32</y>
+         <width>136</width>
+         <height>24</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Sync to new Position :</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_2">
+       <property name="geometry">
+        <rect>
+         <x>240</x>
+         <y>32</y>
+         <width>56</width>
+         <height>24</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Sync</string>
+       </property>
+      </widget>
+      <widget class="QDoubleSpinBox" name="doubleSpinBox">
+       <property name="geometry">
+        <rect>
+         <x>160</x>
+         <y>32</y>
+         <width>72</width>
+         <height>24</height>
+        </rect>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+       <property name="maximum">
+        <double>359.990000000000009</double>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_3">
+       <property name="geometry">
+        <rect>
+         <x>24</x>
+         <y>112</y>
+         <width>96</width>
+         <height>24</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Hemisphere :</string>
+       </property>
+      </widget>
+      <widget class="QRadioButton" name="radioButton">
+       <property name="geometry">
+        <rect>
+         <x>120</x>
+         <y>112</y>
+         <width>99</width>
+         <height>24</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Northern</string>
+       </property>
+      </widget>
+      <widget class="QRadioButton" name="radioButton_2">
+       <property name="geometry">
+        <rect>
+         <x>224</x>
+         <y>112</y>
+         <width>99</width>
+         <height>24</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Southern</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QLabel" name="label_logo_2">
+      <property name="geometry">
+       <rect>
+        <x>16</x>
+        <y>0</y>
+        <width>320</width>
+        <height>90</height>
+       </rect>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="text">
+       <string notr="true"/>
+      </property>
+      <property name="pixmap">
+       <pixmap>PrimaLuceLab.png</pixmap>
+      </property>
+      <property name="scaledContents">
+       <bool>false</bool>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+      <property name="X2_PhotoFileName" stdset="0">
+       <string>PrimaLuceLab.png</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButtonCancel">
+      <property name="geometry">
+       <rect>
+        <x>176</x>
+        <y>384</y>
+        <width>81</width>
+        <height>24</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Cancel</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButtonOK">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>264</x>
+        <y>384</y>
+        <width>81</width>
+        <height>24</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>OK</string>
+      </property>
+      <property name="default">
+       <bool>true</bool>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_4">
+      <property name="geometry">
+       <rect>
+        <x>112</x>
+        <y>112</y>
+        <width>133</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>© RTI-Zone.org, 2026</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton">
+      <property name="geometry">
+       <rect>
+        <x>112</x>
+        <y>160</y>
+        <width>144</width>
+        <height>32</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Calibrate</string>
+      </property>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>X2Form</class>
+   <extends>QFrame</extends>
+   <header>x2form.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
