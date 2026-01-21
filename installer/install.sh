@@ -37,23 +37,23 @@ cp "./focuserlist Esatto.txt" "$TheSkyX_Path/Resources/Common/Miscellaneous File
 
 cp "./Arco.ui" "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/RotatorPlugIns/"
 cp "./PrimaLuceLab.png" "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/RotatorPlugIns/"
-cp "./libArco.dylib" "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/RotatorPlugIns/"
+cp "./libArco.so" "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/RotatorPlugIns/"
 
 cp "./Esatto.ui" "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/FocuserPlugIns/"
 cp "./PrimaLuceLab.png" "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/FocuserPlugIns/"
-cp "./libEsatto.dylib" "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/FocuserPlugIns/"
+cp "./libEsatto.so" "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/FocuserPlugIns/"
 
 app_owner=`/usr/bin/stat -c "%u" "$TheSkyX_Path" | xargs id -n -u`
 if [ ! -z "$app_owner" ]; then
 	chown $app_owner "$TheSkyX_Path/Resources/Common/Miscellaneous Files/rotatorlist Arco..txt"
 	chown $app_owner "$PLUGINS_DIR/RotatorPlugIns/Arco.ui"
 	chown $app_owner "$PLUGINS_DIR/RotatorPlugIns/PrimaLuceLab.png"
-	chown $app_owner "$PLUGINS_DIR/RotatorPlugIns/libArcodylib"
+	chown $app_owner "$PLUGINS_DIR/RotatorPlugIns/libArco.so"
 
 	chown $app_owner "$TheSkyX_Path/Resources/Common/Miscellaneous Files/focuserlist Esatto.txt"
 	chown $app_owner "$PLUGINS_DIR/FocuserPlugIns/Esatto.ui"
 	chown $app_owner "$PLUGINS_DIR/FocuserPlugIns/PrimaLuceLab.png"
-	chown $app_owner "$PLUGINS_DIR/FocuserPlugIns/libEsatto.dylib"
+	chown $app_owner "$PLUGINS_DIR/FocuserPlugIns/libEsatto.so"
 fi
 chmod  755 "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/RotatorPlugIns/libArco.so"
 chmod  755 "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/FocuserPlugIns/libEsatto.so"
