@@ -133,6 +133,11 @@ public:
 	int         setLeds(std::string sLedState);
 	int         getLeds(std::string &sLedState);
 
+#ifdef ESATTO_PLUGIN_DEBUG
+	void 		log(std::string sLogString);
+#endif
+
+
 
 protected:
 
@@ -165,6 +170,7 @@ protected:
     float           m_fFirmwareVersion;
 
 	CStopWatch		m_StatusTimer;
+
 
 #ifdef ESATTO_PLUGIN_DEBUG
 	void  hexdump( char *inputData, int inputSize,  std::string &outHex);

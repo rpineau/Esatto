@@ -114,6 +114,7 @@ int X2Rotator::execModalSettingsDialog()
         nErr = mRotator.getReverseEnable(bReversed);
         if(!nErr)
             dx->setChecked("reverseDir", bReversed);
+
 		mRotator.getHemisphere(sHemisphere);
 		if(sHemisphere == "northern")
 			dx->setChecked("radioButton", 1);
@@ -128,6 +129,8 @@ int X2Rotator::execModalSettingsDialog()
 		dx->setEnabled("radioButton", false);
 		dx->setEnabled("radioButton_2", false);
     }
+	dx->setText("calibrationState", "");
+
     //Display the user interface
     if ((nErr = ui->exec(bPressedOK)))
         return nErr;
@@ -156,23 +159,28 @@ void X2Rotator::uiEvent(X2GUIExchangeInterface* uiex, const char* pszEvent)
 		if(m_bCalibrating) {
 			mRotator.isCalibrationDone(bCalDone);
 			if(bCalDone) {
-				uiex->setText("_pushButton", "Calibrate");
-				m_bCalibrating = true;
+				uiex->setText("pushButton", "Calibrate");
+				uiex->setText("calibrationState", "Calibration done");
+				m_bCalibrating = false;
 			}
 		}
 	}
 
 	if (!strcmp(pszEvent, "on_pushButton_clicked")) {
 		if(!m_bCalibrating) {
-			uiex->setText("_pushButton", "Abort");
+			uiex->setText("pushButton", "Abort");
 			mRotator.startCalibration();
 			m_bCalibrating = true;
+			uiex->setText("calibrationState", "Calibrating");
+
 		}
 		else {
 			// abort
-			uiex->setText("_pushButton", "Calibrate");
+			uiex->setText("pushButton", "Calibrate");
 			mRotator.stopCalibration();
 			m_bCalibrating = false;
+			uiex->setText("calibrationState", "");
+
 		}
 	}
 
@@ -181,7 +189,7 @@ void X2Rotator::uiEvent(X2GUIExchangeInterface* uiex, const char* pszEvent)
         nErr = mRotator.syncMotorPosition(dNewPos);
         if(nErr) {
             sErrMsg = "Sync to new position failed : Error = " + std::to_string(nErr);
-            uiex->messageBox("IFW Homing", sErrMsg.c_str());
+            uiex->messageBox("Sync failed", sErrMsg.c_str());
         }
     }
 	else if (!strcmp(pszEvent, "on_radioButton_clicked")) {

@@ -42,7 +42,7 @@
 #include "json.hpp"
 using json = nlohmann::json;
 
-#define ARCO_PLUGIN_DEBUG 3
+// #define ARCO_PLUGIN_DEBUG 2
 
 #define ARCO_PLUGIN_VERSION	1.00
 
@@ -81,18 +81,10 @@ public:
     int         isMotorMoving(bool &bMoving);
 
     // getter and setter
-    void        setDebugLog(bool bEnable) {m_bDebugLog = bEnable; };
-
-	int         getDeviceStatus();
-
 	int         getFirmwareVersion(std::string &sVersion);
 	int         getModelName(std::string &sModelName);
-	int         getModel();
-	int         getTemperature(double &dTemperature, int nTempProbe);
-	int         getPosition(int &nPosition);
 
-	int         syncMotorPosition(int nPos);
-    int         getPosition(double &dPosition);
+	int         getPosition(double &dPosition);
     int         syncMotorPosition(double dPos);
 
     int         setReverseEnable(bool bEnabled);
@@ -103,23 +95,23 @@ public:
 
 	int			startCalibration();
 	int			stopCalibration();
-	int			isCalibrationDone(bool bDone);
+	int			isCalibrationDone(bool &getbDone);
+#ifdef ARCO_PLUGIN_DEBUG
+	void 		log(std::string sLogString);
+#endif
 
 protected:
 	int             ctrlCommand(const std::string sCmd, std::string &sResult, int nTimeout = MAX_TIMEOUT);
 	int             readResponse(std::string &sResp, int nTimeout = MAX_TIMEOUT);
-	void            interCommandPause();
 
-    SerXInterface   *m_pSerx;
+	SerXInterface   *m_pSerx;
 
-    bool            m_bDebugLog;
     bool            m_bIsConnected;
 	bool			m_bArcoPresent;
 
 	std::string		m_sAppVer;
 	std::string		m_sWebVer;
 	std::string		m_sModelName;
-	int             m_nModel;
 	float           m_fFirmwareVersion;
 
 	CStopWatch		m_StatusTimer;

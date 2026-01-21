@@ -45,7 +45,7 @@ CEsattoController::CEsattoController()
 #endif
 
 #if defined ESATTO_PLUGIN_DEBUG
-	m_sLogFile << "["<<getTimeStamp()<<"]"<< " [" << __func__ << "] Version " << std::fixed << std::setprecision(2) << PLUGIN_VERSION << " build " << __DATE__ << " " << __TIME__ << " on "<< m_sPlatform << std::endl;
+	m_sLogFile << "["<<getTimeStamp()<<"]"<< " [" << __func__ << "] Version " << std::fixed << std::setprecision(2) << ESATTO_PLUGIN_VERSION << " build " << __DATE__ << " " << __TIME__ << " on "<< m_sPlatform << std::endl;
 	m_sLogFile << "["<<getTimeStamp()<<"]"<< " [" << __func__ << "] Constructor Called." << std::endl;
     m_sLogFile.flush();
 #endif
@@ -240,7 +240,7 @@ int CEsattoController::gotoPosition(int nPos)
     m_sLogFile.flush();
 #endif
 #if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
-	mm_sLogFile << "["<<getTimeStamp()<<"]"<< " [" << __func__ << "] m_StatusTimer.GetElapsedSeconds() : " << m_StatusTimer.GetElapsedSeconds() << std::endl;
+	m_sLogFile << "["<<getTimeStamp()<<"]"<< " [" << __func__ << "] m_StatusTimer.GetElapsedSeconds() : " << m_StatusTimer.GetElapsedSeconds() << std::endl;
 	m_sLogFile.flush();
 #endif
 
@@ -1661,7 +1661,7 @@ int CEsattoController::setLeds(std::string sLedState)
 	json jCmd;
 	json jResp;
 
-#if defined ARCO_PLUGIN_DEBUG && ARCO_PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
 	m_sLogFile << "["<<getTimeStamp()<<"]"<< " [" << __func__ << "] Called." << std::endl;
 	m_sLogFile.flush();
 #endif
@@ -1680,7 +1680,7 @@ int CEsattoController::setLeds(std::string sLedState)
 		}
 	}
 	catch (json::exception& e) {
-#if defined ARCO_PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
 		m_sLogFile << "["<<getTimeStamp()<<"]"<< " [" << __func__ << "] json exception : " << e.what() << " - " << e.id << std::endl;
 		m_sLogFile << "["<<getTimeStamp()<<"]"<< " [" << __func__ << "] json exception response : " << sResp << std::endl;
 		m_sLogFile.flush();
@@ -1700,7 +1700,7 @@ int CEsattoController::getLeds(std::string &sLedState)
 	json jCmd;
 	json jResp;
 
-#if defined ARCO_PLUGIN_DEBUG && ARCO_PLUGIN_DEBUG >= 2
+#if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2
 	m_sLogFile << "["<<getTimeStamp()<<"]"<< " [" << __func__ << "] Called." << std::endl;
 	m_sLogFile.flush();
 #endif
@@ -1718,13 +1718,18 @@ int CEsattoController::getLeds(std::string &sLedState)
 		}
 	}
 	catch (json::exception& e) {
-#if defined ARCO_PLUGIN_DEBUG
+#if defined ESATTO_PLUGIN_DEBUG
 		m_sLogFile << "["<<getTimeStamp()<<"]"<< " [" << __func__ << "] json exception : " << e.what() << " - " << e.id << std::endl;
 		m_sLogFile << "["<<getTimeStamp()<<"]"<< " [" << __func__ << "] json exception response : " << sResp << std::endl;
 		m_sLogFile.flush();
 #endif
 		return ERR_CMDFAILED;
 	}
+
+#if defined ESATTO_PLUGIN_DEBUG
+	m_sLogFile << "["<<getTimeStamp()<<"]"<< " [" << __func__ << "] Leds : " << sLedState << std::endl;
+	m_sLogFile.flush();
+#endif
 	return nErr;
 }
 
@@ -1906,6 +1911,14 @@ int CEsattoController::readResponse(std::string &sResp, int nTimeout)
 }
 
 #ifdef ESATTO_PLUGIN_DEBUG
+void CEsattoController::log(std::string sLogString)
+{
+	m_sLogFile << "["<<getTimeStamp()<<"]"<< " [" << __func__ << "] " << sLogString << std::endl;
+	m_sLogFile.flush();
+
+}
+
+
 void  CEsattoController::hexdump( char *inputData, int inputSize,  std::string &outHex)
 {
 	int idx=0;

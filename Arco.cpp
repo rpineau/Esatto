@@ -630,7 +630,7 @@ int CArcoRotator::getReverseEnable(bool &bEnabled)
 	try {
 		jResp = json::parse(sResp);
 		if(jResp.at("res").at("get").at("MOT2").contains("REVERSE")) {
-			nReverse = jResp.at("res").at("get").at("MOT2").at("POSITION_DEG").get<int>();
+			nReverse = jResp.at("res").at("get").at("MOT2").at("REVERSE").get<int>();
 		}
 	}
 	catch (json::exception& e) {
@@ -712,7 +712,7 @@ int CArcoRotator::getHemisphere(std::string &sHemisphere)
 	try {
 		jResp = json::parse(sResp);
 		if(jResp.at("res").at("get").at("MOT2").contains("HEMISPHERE")) {
-			sHemisphere.assign(jResp.at("res").at("get").at("MOT2").at("POSITION_DEG").get<std::string>());
+			sHemisphere.assign(jResp.at("res").at("get").at("MOT2").at("HEMISPHERE").get<std::string>());
 		}
 	}
 	catch (json::exception& e) {
@@ -741,7 +741,7 @@ int CArcoRotator::startCalibration()
 	m_sLogFile.flush();
 #endif
 	jCmd["req"]["set"]["MOT2"]["CAL_STATUS"]="exec";
-	nErr = ctrlCommand(jCmd.dump(), sResp);
+	nErr = ctrlCommand(jCmd.dump(), sResp, 1000);
 	if(nErr)
 		return false;
 	if(!sResp.length()) {
@@ -802,7 +802,7 @@ int CArcoRotator::stopCalibration()
 	return nErr;
 }
 
-int CArcoRotator::isCalibrationDone(bool bDone)
+int CArcoRotator::isCalibrationDone(bool &bDone)
 {
 	int nErr = R_PLUGIN_OK;
 
@@ -828,7 +828,7 @@ int CArcoRotator::isCalibrationDone(bool bDone)
 	}
 	try {
 		jResp = json::parse(sResp);
-		if(jResp.at("res").at("set").at("MOT2").at("HEMISPHERE") == "stop") {
+		if(jResp.at("res").at("get").at("MOT2").at("CAL_STATUS") == "stop") {
 			bDone = true;
 		}
 	}
@@ -840,10 +840,12 @@ int CArcoRotator::isCalibrationDone(bool bDone)
 #endif
 		return ERR_CMDFAILED;
 	}
+#if defined ARCO_PLUGIN_DEBUG
+	m_sLogFile << "["<<getTimeStamp()<<"]"<< " [" << __func__ << "] bDone: " << (bDone?"true":"false") << std::endl;
+	m_sLogFile.flush();
+#endif
 	return nErr;
 }
-
-
 
 #pragma mark command and response functions
 
@@ -1021,6 +1023,14 @@ int CArcoRotator::readResponse(std::string &sResp, int nTimeout)
 }
 
 #ifdef ARCO_PLUGIN_DEBUG
+
+void CArcoRotator::log(std::string sLogString)
+{
+	m_sLogFile << "["<<getTimeStamp()<<"]"<< " [" << __func__ << "] " << sLogString << std::endl;
+	m_sLogFile.flush();
+
+}
+
 void  CArcoRotator::hexdump( char *inputData, int inputSize,  std::string &outHex)
 {
 	int idx=0;

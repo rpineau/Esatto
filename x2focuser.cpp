@@ -467,7 +467,7 @@ void X2Focuser::uiEvent(X2GUIExchangeInterface* uiex, const char* pszEvent)
         }
     }
 	else if (!strcmp(pszEvent, "on_comboBox_2_currentIndexChanged")) {
-		uiex->text("combobox_2", szBuffer, LOG_BUFFER_SIZE);
+		uiex->propertyString("comboBox_2", "currentText", szBuffer, LOG_BUFFER_SIZE);
 		m_Esatto.setLeds(std::string(szBuffer));
 	}
 }
