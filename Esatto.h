@@ -44,7 +44,7 @@
 using json = nlohmann::json;
 
 // #define ESATTO_PLUGIN_DEBUG 2
-#define ESATTO_PLUGIN_VERSION      1.51
+#define ESATTO_PLUGIN_VERSION      1.70
 
 
 #define SERIAL_BUFFER_SIZE 8192
