@@ -30,7 +30,7 @@ X2Rotator::X2Rotator(const char* pszDriverSelection,
 	m_nInstanceIndex = nInstanceIndex;
 	m_bLinked = false;
 	m_dPosition = 0;
-	m_bDoingGoto = false;
+	m_bCalibrating = false;
 	m_dTargetPosition = 0;
 	m_nGotoStartStamp = 0;
     
@@ -90,7 +90,8 @@ int X2Rotator::execModalSettingsDialog()
     bool bReversed = false;
     bool bNewReversed = false;
     double dPos;
-    
+	std::string sHemisphere;
+
     if (NULL == ui)
         return ERR_POINTER;
 
@@ -113,12 +114,19 @@ int X2Rotator::execModalSettingsDialog()
         nErr = mRotator.getReverseEnable(bReversed);
         if(!nErr)
             dx->setChecked("reverseDir", bReversed);
+		mRotator.getHemisphere(sHemisphere);
+		if(sHemisphere == "northern")
+			dx->setChecked("radioButton", 1);
+		else
+			dx->setChecked("radioButton_2", 1);
     }
     else {
         dx->setEnabled("pushButton", false);
         dx->setEnabled("pushButton_2", false);
         dx->setEnabled("doubleSpinBox", false);
         dx->setEnabled("reverseDir", false);
+		dx->setEnabled("radioButton", false);
+		dx->setEnabled("radioButton_2", false);
     }
     //Display the user interface
     if ((nErr = ui->exec(bPressedOK)))
@@ -142,8 +150,33 @@ void X2Rotator::uiEvent(X2GUIExchangeInterface* uiex, const char* pszEvent)
     double dNewPos;
     int nErr = SB_OK;
     std::string sErrMsg;
-    
-    if (!strcmp(pszEvent, "on_pushButton_2_clicked")) {
+	bool bCalDone = false;
+
+	if (!strcmp(pszEvent, "on_timer")) {
+		if(m_bCalibrating) {
+			mRotator.isCalibrationDone(bCalDone);
+			if(bCalDone) {
+				uiex->setText("_pushButton", "Calibrate");
+				m_bCalibrating = true;
+			}
+		}
+	}
+
+	if (!strcmp(pszEvent, "on_pushButton_clicked")) {
+		if(!m_bCalibrating) {
+			uiex->setText("_pushButton", "Abort");
+			mRotator.startCalibration();
+			m_bCalibrating = true;
+		}
+		else {
+			// abort
+			uiex->setText("_pushButton", "Calibrate");
+			mRotator.stopCalibration();
+			m_bCalibrating = false;
+		}
+	}
+
+    else if (!strcmp(pszEvent, "on_pushButton_2_clicked")) {
         uiex->propertyDouble("doubleSpinBox", "value", dNewPos);
         nErr = mRotator.syncMotorPosition(dNewPos);
         if(nErr) {
@@ -151,6 +184,12 @@ void X2Rotator::uiEvent(X2GUIExchangeInterface* uiex, const char* pszEvent)
             uiex->messageBox("IFW Homing", sErrMsg.c_str());
         }
     }
+	else if (!strcmp(pszEvent, "on_radioButton_clicked")) {
+		mRotator.setHemisphere("northern");
+	}
+	else if (!strcmp(pszEvent, "on_radioButton_2_clicked")) {
+		mRotator.setHemisphere("southern");
+	}
 }
 
 

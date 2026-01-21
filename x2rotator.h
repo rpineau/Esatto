@@ -183,7 +183,7 @@ private:
 	bool m_bLinked;
 	int m_nInstanceIndex;
 	double m_dPosition;
-	bool m_bDoingGoto;
+	bool m_bCalibrating;
 	double m_dTargetPosition;
 	int m_nGotoStartStamp;
 

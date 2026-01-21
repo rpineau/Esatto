@@ -1,7 +1,7 @@
 //
-//  falcon.cpp
+//  Arco.cpp
 //  Created by Rodolphe Pineau on 2020/11/26.
-//  Pegasus Falcon Rotator X2 plugin
+//  Pegasus Arco Rotator X2 plugin
 //
 
 

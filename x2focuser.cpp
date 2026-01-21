@@ -223,6 +223,8 @@ int	X2Focuser::execModalSettingsDialog(void)
     std::string sPWD_AP;
     std::string sSSID_STA;
     std::string sPWD_STA;
+	std::string sLedState;
+	int nLedStateIndex = 0;
     MotorSettings motorSettings;
     int nDir;
     int nModel = ESATTO;
@@ -325,6 +327,16 @@ int	X2Focuser::execModalSettingsDialog(void)
             dx->setEnabled("GatewayIP", false);
             dx->setEnabled("pushButton_2", true);
         }
+		nErr = m_Esatto.getLeds(sLedState);
+		if(sLedState == "on")
+			nLedStateIndex = 0;
+		else if(sLedState == "low")
+			nLedStateIndex = 1;
+		else if(sLedState == "middle")
+			nLedStateIndex = 2;
+		else if(sLedState == "off")
+			nLedStateIndex = 3;
+		dx->setCurrentIndex("comboBox_2", nLedStateIndex);
     }
     else {
         // disable all controls
@@ -341,7 +353,11 @@ int	X2Focuser::execModalSettingsDialog(void)
         dx->setEnabled("decCurrent", false);
         dx->setEnabled("holdCurrent", false);
         dx->setEnabled("backlash", false);
-        dx->setEnabled("sSSID", false);
+		dx->setEnabled("comboBox", false);
+
+		dx->setEnabled("checkBox", false);
+
+		dx->setEnabled("sSSID", false);
         dx->setEnabled("sPWD", false);
         dx->setEnabled("StaSSID", false);
         dx->setEnabled("StaPWD", false);
@@ -357,6 +373,8 @@ int	X2Focuser::execModalSettingsDialog(void)
         dx->setEnabled("maxPos", false);
         dx->setEnabled("pushButton_3", false);
         dx->setText("curPosLabel","");
+		dx->setEnabled("comboBox_2", false);
+		dx->setEnabled("pushButton_4", false);
     }
 
     //Display the user interface
@@ -448,7 +466,10 @@ void X2Focuser::uiEvent(X2GUIExchangeInterface* uiex, const char* pszEvent)
             return;
         }
     }
-
+	else if (!strcmp(pszEvent, "on_comboBox_2_currentIndexChanged")) {
+		uiex->text("combobox_2", szBuffer, LOG_BUFFER_SIZE);
+		m_Esatto.setLeds(std::string(szBuffer));
+	}
 }
 
 #pragma mark - FocuserGotoInterface2
