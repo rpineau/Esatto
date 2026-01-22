@@ -51,9 +51,9 @@ if [ ! -z "$app_owner" ]; then
 	chown $app_owner "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR//RotatorPlugIns/libArco.so"
 
 	chown $app_owner "$TheSkyX_Path/Resources/Common/Miscellaneous Files/focuserlist Esatto.txt"
-	chown $app_owner "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR//FocuserPlugIns/Esatto.ui"
-	chown $app_owner "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR//FocuserPlugIns/PrimaLuceLab.png"
-	chown $app_owner "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/R/FocuserPlugIns/libEsatto.so"
+	chown $app_owner "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/FocuserPlugIns/Esatto.ui"
+	chown $app_owner "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/FocuserPlugIns/PrimaLuceLab.png"
+	chown $app_owner "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/FocuserPlugIns/libEsatto.so"
 fi
 chmod  755 "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/RotatorPlugIns/libArco.so"
 chmod  755 "$TheSkyX_Path/Resources/Common/$PLUGINS_DIR/FocuserPlugIns/libEsatto.so"
