@@ -429,8 +429,8 @@ int X2Rotator::isConnectionPossible(const int &nPeerArraySize, MultiConnectionDe
 {
 	for (int nIndex = 0; nIndex < nPeerArraySize; ++nIndex)
 	{
-		X2Focuser *pPeer = dynamic_cast<X2Focuser*>(ppPeerArray[nIndex]);
-		if (pPeer == NULL)
+		X2Focuser *pRotatorPeer = dynamic_cast<X2Focuser*>(ppPeerArray[nIndex]);
+		if (pRotatorPeer == NULL)
 		{
 			bConnectionPossible = false;
 			return ERR_POINTER;
@@ -444,14 +444,14 @@ int X2Rotator::isConnectionPossible(const int &nPeerArraySize, MultiConnectionDe
 int X2Rotator::useResource(MultiConnectionDeviceInterface *pPeer)
 {
 
-	X2Focuser *pFocuserPeer = dynamic_cast<X2Focuser*>(pPeer);
-	if (pFocuserPeer == NULL) {
+	X2Focuser *pRotatorPeer = dynamic_cast<X2Focuser*>(pPeer);
+	if (pRotatorPeer == NULL) {
 		return ERR_POINTER; // Peer must be a focuser pointer
 	}
 
 	// Use the resources held by the specified peer
-	m_pIOMutex = pFocuserPeer->m_pSavedMutex;
-	mRotator.SetSerxPointer(pFocuserPeer->m_pSavedSerX);
+	m_pIOMutex = pRotatorPeer->m_pSavedMutex;
+	mRotator.SetSerxPointer(pRotatorPeer->m_pSavedSerX);
 	return SB_OK;
 
 }
@@ -459,8 +459,8 @@ int X2Rotator::useResource(MultiConnectionDeviceInterface *pPeer)
 int X2Rotator::swapResource(MultiConnectionDeviceInterface *pPeer)
 {
 
-	X2Focuser *pFocuserPeer = dynamic_cast<X2Focuser*>(pPeer);
-	if (pFocuserPeer == NULL) {
+	X2Focuser *pRotatorPeer = dynamic_cast<X2Focuser*>(pPeer);
+	if (pRotatorPeer == NULL) {
 		return ERR_POINTER; //  Peer must be a focuser pointer
 	}
 
@@ -468,11 +468,11 @@ int X2Rotator::swapResource(MultiConnectionDeviceInterface *pPeer)
 	MutexInterface* pTempMutex = m_pSavedMutex;
 	SerXInterface*  pTempSerX = m_pSavedSerX;
 
-	m_pSavedMutex = pFocuserPeer->m_pSavedMutex;
-	m_pSavedSerX = pFocuserPeer->m_pSavedSerX;
+	m_pSavedMutex = pRotatorPeer->m_pSavedMutex;
+	m_pSavedSerX = pRotatorPeer->m_pSavedSerX;
 
-	pFocuserPeer->m_pSavedMutex = pTempMutex;
-	pFocuserPeer->m_pSavedSerX = pTempSerX;
+	pRotatorPeer->m_pSavedMutex = pTempMutex;
+	pRotatorPeer->m_pSavedSerX = pTempSerX;
 
 	return SB_OK;
 }

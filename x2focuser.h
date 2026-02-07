@@ -53,14 +53,13 @@ Use this example to write an X2Focuser driver.
 */
 #ifndef __CLASS_ATTRIBUTE__
 #if defined(WIN32)
-#define __CLASS_ATTRIBUTE__(x)
+#define __CLASS_ATTRIBUTE__
 #else
-#define __CLASS_ATTRIBUTE__(x) __attribute__(x)
+#define __CLASS_ATTRIBUTE__ __attribute__((weak,visibility("default")))
 #endif
 #endif
 
-
-class __CLASS_ATTRIBUTE__((weak,visibility("default"))) X2Focuser : public FocuserDriverInterface, public SerialPortParams2Interface, public ModalSettingsDialogInterface, public X2GUIEventInterface, public FocuserTemperatureInterface, public MultiConnectionDeviceInterface
+class __CLASS_ATTRIBUTE__ X2Focuser : public FocuserDriverInterface, public SerialPortParams2Interface, public ModalSettingsDialogInterface, public X2GUIEventInterface, public FocuserTemperatureInterface, public MultiConnectionDeviceInterface
 {
 public:
 	X2Focuser(const char                        *pszDisplayName,

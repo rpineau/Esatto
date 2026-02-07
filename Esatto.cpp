@@ -27,22 +27,17 @@ CEsattoController::CEsattoController()
     m_nModel = ESATTO;
 
 #ifdef ESATTO_PLUGIN_DEBUG
-#if defined(SB_WIN_BUILD)
-    m_sLogfilePath = getenv("HOMEDRIVE");
-    m_sLogfilePath += getenv("HOMEPATH");
-    m_sLogfilePath += "\\EsattoLog.txt";
-    m_sPlatform = "Windows";
-#elif defined(SB_LINUX_BUILD)
-    m_sLogfilePath = getenv("HOME");
-    m_sLogfilePath += "/EsattoLog.txt";
-    m_sPlatform = "Linux";
-#elif defined(SB_MAC_BUILD)
-    m_sLogfilePath = getenv("HOME");
-    m_sLogfilePath += "/EsattoLog.txt";
-    m_sPlatform = "macOS";
+#if defined(WIN32)
+	m_sLogfilePath = getenv("HOMEDRIVE");
+	m_sLogfilePath += getenv("HOMEPATH");
+	m_sLogfilePath += "\\EsattoLog.txt";
+#else
+	m_sLogfilePath = getenv("HOME");
+	m_sLogfilePath += "/EsattoLog.txt";
 #endif
-    m_sLogFile.open(m_sLogfilePath, std::ios::out |std::ios::trunc);
+	m_sLogFile.open(m_sLogfilePath, std::ios::out |std::ios::trunc);
 #endif
+
 
 #if defined ESATTO_PLUGIN_DEBUG
 	m_sLogFile << "["<<getTimeStamp()<<"]"<< " [" << __func__ << "] Version " << std::fixed << std::setprecision(2) << ESATTO_PLUGIN_VERSION << " build " << __DATE__ << " " << __TIME__ << " on "<< m_sPlatform << std::endl;
@@ -76,11 +71,12 @@ int CEsattoController::Connect(const char *pszPort)
 #endif
 
     m_bIsConnected = false;
-
-    nErr = m_pSerx->open(pszPort, 115200, SerXInterface::B_NOPARITY);
-    if(nErr)
-        return nErr;
-
+	if (!m_pSerx->isConnected()) {
+		nErr = m_pSerx->open(pszPort, 115200, SerXInterface::B_NOPARITY);
+		if(nErr)
+			return nErr;
+	}
+	
     m_bIsConnected = true;
 
 #if defined ESATTO_PLUGIN_DEBUG && ESATTO_PLUGIN_DEBUG >= 2

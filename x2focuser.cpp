@@ -662,8 +662,8 @@ int X2Focuser::isConnectionPossible(const int &nPeerArraySize, MultiConnectionDe
 {
 	for (int nIndex = 0; nIndex < nPeerArraySize; ++nIndex)
 	{
-		X2Rotator *pPeer = dynamic_cast<X2Rotator*>(ppPeerArray[nIndex]);
-		if (pPeer == NULL)
+		X2Rotator *pFocuserPeer = dynamic_cast<X2Rotator*>(ppPeerArray[nIndex]);
+		if (pFocuserPeer == NULL)
 		{
 			bConnectionPossible = false;
 			return ERR_POINTER;

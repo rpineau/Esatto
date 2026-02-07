@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\main.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\Esatto.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -27,15 +24,33 @@
     <ClInclude Include="..\json.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\StopWatch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\focuserMain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Arco.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\x2rotator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\Esatto.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\x2focuser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\focuserMain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Arco.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\x2rotator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -53,13 +53,13 @@ Use this example to write an X2Rotator driver.
 */
 #ifndef __CLASS_ATTRIBUTE__
 #if defined(WIN32)
-#define __CLASS_ATTRIBUTE__(x)
+#define __CLASS_ATTRIBUTE__
 #else
-#define __CLASS_ATTRIBUTE__(x) __attribute__(x)
+#define __CLASS_ATTRIBUTE__ __attribute__((weak,visibility("default")))
 #endif
 #endif
 
-class __CLASS_ATTRIBUTE__((weak,visibility("default")))  X2Rotator : public RotatorDriverInterface, public SerialPortParams2Interface, public ModalSettingsDialogInterface, public X2GUIEventInterface, public MultiConnectionDeviceInterface
+class __CLASS_ATTRIBUTE__ X2Rotator : public RotatorDriverInterface, public SerialPortParams2Interface, public ModalSettingsDialogInterface, public X2GUIEventInterface, public MultiConnectionDeviceInterface
 {
 // Construction
 public:

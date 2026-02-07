@@ -15,21 +15,14 @@ CArcoRotator::CArcoRotator()
     
     m_pSerx = NULL;
 
-
 #ifdef ARCO_PLUGIN_DEBUG
-#if defined(SB_WIN_BUILD)
+#if defined(WIN32)
 	m_sLogfilePath = getenv("HOMEDRIVE");
 	m_sLogfilePath += getenv("HOMEPATH");
 	m_sLogfilePath += "\\ArcoLog.txt";
-	m_sPlatform = "Windows";
-#elif defined(SB_LINUX_BUILD)
+#else
 	m_sLogfilePath = getenv("HOME");
 	m_sLogfilePath += "/ArcoLog.txt";
-	m_sPlatform = "Linux";
-#elif defined(SB_MAC_BUILD)
-	m_sLogfilePath = getenv("HOME");
-	m_sLogfilePath += "/ArcoLog.txt";
-	m_sPlatform = "macOS";
 #endif
 	m_sLogFile.open(m_sLogfilePath, std::ios::out |std::ios::trunc);
 #endif
@@ -67,10 +60,11 @@ int CArcoRotator::Connect(const char *pszPort)
 
 	m_bIsConnected = false;
 
-	nErr = m_pSerx->open(pszPort, 115200, SerXInterface::B_NOPARITY);
-	if(nErr)
-		return nErr;
-
+	if (!m_pSerx->isConnected()) {
+		nErr = m_pSerx->open(pszPort, 115200, SerXInterface::B_NOPARITY);
+		if(nErr)
+			return nErr;
+	}
 	m_bIsConnected = true;
 
 #if defined ARCO_PLUGIN_DEBUG && ARCO_PLUGIN_DEBUG >= 2
