@@ -5,8 +5,8 @@
 //  Created by Rodolphe Pineau on 10/11/2019.
 
 
-#ifndef __PLUGIN__
-#define __PLUGIN__
+#ifndef __ESATTO_PLUGIN__
+#define __ESATTO_PLUGIN__
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -38,19 +38,18 @@
 
 #include "../../licensedinterfaces/sberrorx.h"
 #include "../../licensedinterfaces/serxinterface.h"
-
 #include "StopWatch.h"
+
 #include "json.hpp"
 using json = nlohmann::json;
 
-// #define PLUGIN_DEBUG 2
-#define PLUGIN_VERSION      1.51
+// #define ESATTO_PLUGIN_DEBUG 2
+#define ESATTO_PLUGIN_VERSION      1.70
 
 
 #define SERIAL_BUFFER_SIZE 8192
-#define MAX_TIMEOUT 1500
+#define MAX_TIMEOUT 250
 #define MAX_READ_WAIT_TIMEOUT 25
-#define NB_RX_WAIT 30
 
 #define INTER_COMMAND_WAIT    100
 
@@ -60,7 +59,7 @@ using json = nlohmann::json;
 
 enum PLUGIN_Errors  {PLUGIN_OK = 0, NOT_CONNECTED, PLUGIN_CANT_CONNECT, PLUGIN_BAD_CMD_RESPONSE, COMMAND_FAILED, COMMAND_TIMEOUT};
 enum MotorStatus    {IDLE = 0, MOVING};
-enum WiFiModes      {AP=0, STA};
+enum WiFiModes      {AP=0, STA, AP_STA};
 enum TempProbe      {EXT_T = 0, NTC_T};
 enum Models         {ESATTO = 0, SESTO};
 enum MotorDir       {NORMAL=0, INVERT};
@@ -115,8 +114,12 @@ public:
     int         getDirection(int &nDir);
     int         setDirection(int nDir);
 
-    int         getWiFiConfig(int &nMode, std::string &sSSID, std::string &sPWD);
-    int         setWiFiConfig(int nMode, std::string sSSID, std::string sPWD);
+    int         isWifiEnabled(bool &bEnabled);
+    int         enableWiFi(bool bEnable);
+    int         getWiFiConfig(int &nMode, std::string &sSSID_AP, std::string &sPWD_AP, std::string &sSSID_STA, std::string &sPWD_STA);
+    int         setWiFiConfig(int nMode, std::string sSSID_AP, std::string sPWD_AP, std::string sSSID_STA, std::string sPWD_STA);
+    int         getSTAIpConfig(std::string &IpAddress, std::string &subnetMask, std::string &gatewayIpAddress, std::string &dnsIpAdress);
+    int         setSTAIpConfig(std::string IpAddress, std::string subnetMask, std::string gatewayIpAddress, std::string dnsIpAdress);
 
     int         getMotorSettings(MotorSettings &settings);
     int         setMotorSettings(MotorSettings &settings);
@@ -126,6 +129,16 @@ public:
     int         storeAsMaxPosition();
     int         findMaxPos();
     bool        isFocuserMoving();
+
+	int         setLeds(std::string sLedState);
+	int         getLeds(std::string &sLedState);
+
+#ifdef ESATTO_PLUGIN_DEBUG
+	void 		log(std::string sLogString);
+#endif
+
+
+
 protected:
 
     int             ctrlCommand(const std::string sCmd, std::string &sResult, int nTimeout = MAX_TIMEOUT);
@@ -154,12 +167,15 @@ protected:
     int             m_nModel;
 
     MotorSettings   m_RunSettings;
-
-    CStopWatch      m_cmdDelayTimer;
     float           m_fFirmwareVersion;
 
-#ifdef PLUGIN_DEBUG
-    // timestamp for logs
+	CStopWatch		m_StatusTimer;
+
+
+#ifdef ESATTO_PLUGIN_DEBUG
+	void  hexdump( char *inputData, int inputSize,  std::string &outHex);
+
+	// timestamp for logs
     const std::string getTimeStamp();
     std::ofstream m_sLogFile;
     std::string m_sPlatform;
@@ -169,4 +185,4 @@ protected:
 
 };
 
-#endif //__PLUGIN__
+#endif //__ESATTO_PLUGIN__

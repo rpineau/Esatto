@@ -13,10 +13,10 @@
 #include "../../licensedinterfaces/sberrorx.h"
 #include "../../licensedinterfaces/serialportparams2interface.h"
 
-X2Focuser::X2Focuser(const char* pszDisplayName, 
+X2Focuser::X2Focuser(const char* pszDisplayName,
 												const int& nInstanceIndex,
-												SerXInterface						* pSerXIn, 
-												TheSkyXFacadeForDriversInterface	* pTheSkyXIn, 
+												SerXInterface						* pSerXIn,
+												TheSkyXFacadeForDriversInterface	* pTheSkyXIn,
 												SleeperInterface					* pSleeperIn,
 												BasicIniUtilInterface				* pIniUtilIn,
 												LoggerInterface						* pLoggerIn,
@@ -24,14 +24,14 @@ X2Focuser::X2Focuser(const char* pszDisplayName,
 												TickCountInterface					* pTickCountIn)
 
 {
-	m_pSerX							= pSerXIn;		
+	m_pSerX							= pSerXIn;
 	m_pTheSkyXForMounts				= pTheSkyXIn;
 	m_pSleeper						= pSleeperIn;
 	m_pIniUtil						= pIniUtilIn;
-	m_pLogger						= pLoggerIn;	
+	m_pLogger						= pLoggerIn;
 	m_pIOMutex						= pIOMutexIn;
 	m_pTickCount					= pTickCountIn;
-	
+
 	m_bLinked = false;
 	m_nPosition = 0;
     m_fLastTemp = -273.15f; // aboslute zero :)
@@ -39,14 +39,16 @@ X2Focuser::X2Focuser(const char* pszDisplayName,
     // Read in settings
     if (m_pIniUtil) {
     }
-	m_Esatto.SetSerxPointer(m_pSerX);
+	m_pIOMutex = pIOMutexIn;
+	m_pSavedMutex = pIOMutexIn;
+
+	m_pSavedSerX = pSerXIn;
+	m_Esatto.SetSerxPointer(pSerXIn);
 }
 
 X2Focuser::~X2Focuser()
 {
     //Delete objects used through composition
-	if (GetSerX())
-		delete GetSerX();
 	if (GetTheSkyXFacadeForDrivers())
 		delete GetTheSkyXFacadeForDrivers();
 	if (GetSleeper())
@@ -55,9 +57,11 @@ X2Focuser::~X2Focuser()
 		delete GetSimpleIniUtil();
 	if (GetLogger())
 		delete GetLogger();
-	if (GetMutex())
-		delete GetMutex();
 
+	if (m_pSavedSerX)
+		delete m_pSavedSerX;
+	if (m_pSavedMutex)
+		delete m_pSavedMutex;
 }
 
 #pragma mark - DriverRootInterface
@@ -81,11 +85,11 @@ int	X2Focuser::queryAbstraction(const char* pszName, void** ppVal)
     else if (!strcmp(pszName, FocuserTemperatureInterface_Name))
         *ppVal = dynamic_cast<FocuserTemperatureInterface*>(this);
 
-    else if (!strcmp(pszName, ModalSettingsDialogInterface_Name))
-        *ppVal = dynamic_cast<ModalSettingsDialogInterface*>(this);
-
     else if (!strcmp(pszName, SerialPortParams2Interface_Name))
         *ppVal = dynamic_cast<SerialPortParams2Interface*>(this);
+
+	else if (!strcmp(pszName, MultiConnectionDeviceInterface_Name))
+		*ppVal = dynamic_cast<MultiConnectionDeviceInterface*>(this);
 
     return SB_OK;
 }
@@ -96,9 +100,9 @@ void X2Focuser::driverInfoDetailedInfo(BasicStringInterface& str) const
         str = "Focuser X2 plugin by Rodolphe Pineau";
 }
 
-double X2Focuser::driverInfoVersion(void) const							
+double X2Focuser::driverInfoVersion(void) const
 {
-	return PLUGIN_VERSION;
+	return ESATTO_PLUGIN_VERSION;
 }
 
 void X2Focuser::deviceInfoNameShort(BasicStringInterface& str) const
@@ -115,12 +119,12 @@ void X2Focuser::deviceInfoNameShort(BasicStringInterface& str) const
 	}
 }
 
-void X2Focuser::deviceInfoNameLong(BasicStringInterface& str) const				
+void X2Focuser::deviceInfoNameLong(BasicStringInterface& str) const
 {
     deviceInfoNameShort(str);
 }
 
-void X2Focuser::deviceInfoDetailedDescription(BasicStringInterface& str) const		
+void X2Focuser::deviceInfoDetailedDescription(BasicStringInterface& str) const
 {
     std::string sModelName;
 	std::string sDesc;
@@ -131,13 +135,13 @@ void X2Focuser::deviceInfoDetailedDescription(BasicStringInterface& str) const
 	else {
         X2MutexLocker ml(pMe->GetMutex());
         pMe->m_Esatto.getModelName(sModelName);
-		sDesc = "PrimaLuce Lab ";
+		sDesc = "PrimaLuceLab ";
 		sDesc.append(sModelName);
 		str = sDesc.c_str();
 	}
 }
 
-void X2Focuser::deviceInfoFirmwareVersion(BasicStringInterface& str)				
+void X2Focuser::deviceInfoFirmwareVersion(BasicStringInterface& str)
 {
     if(!m_bLinked) {
         str="NA";
@@ -151,7 +155,7 @@ void X2Focuser::deviceInfoFirmwareVersion(BasicStringInterface& str)
     }
 }
 
-void X2Focuser::deviceInfoModel(BasicStringInterface& str)							
+void X2Focuser::deviceInfoModel(BasicStringInterface& str)
 {
     deviceInfoNameShort(str);
 }
@@ -179,11 +183,14 @@ int	X2Focuser::terminateLink(void)
     if(!m_bLinked)
         return SB_OK;
 
-    X2MutexLocker ml(GetMutex());
-    m_Esatto.haltFocuser();
-    m_Esatto.Disconnect();
-    m_bLinked = false;
-
+	X2MutexLocker ml(GetMutex());
+	// m_PegasusPPBAExtFoc.Disconnect(m_nInstanceCount);
+	m_Esatto.haltFocuser();
+	m_Esatto.Disconnect();
+	// We're not connected, so revert to our saved interfaces
+	m_Esatto.SetSerxPointer(m_pSavedSerX);
+	m_pIOMutex = m_pSavedMutex;
+	m_bLinked = false;
 	return SB_OK;
 }
 
@@ -212,11 +219,16 @@ int	X2Focuser::execModalSettingsDialog(void)
     int maxPos = 0;
     mUiEnabled = false;
     int nWiFiMode = AP;
-    std::string sSSID;
-    std::string sPWD;
+    std::string sSSID_AP;
+    std::string sPWD_AP;
+    std::string sSSID_STA;
+    std::string sPWD_STA;
+	std::string sLedState;
+	int nLedStateIndex = 0;
     MotorSettings motorSettings;
     int nDir;
     int nModel = ESATTO;
+    bool bEnable;
 
     if (NULL == ui)
         return ERR_POINTER;
@@ -284,18 +296,47 @@ int	X2Focuser::execModalSettingsDialog(void)
             dx->setEnabled("backlash", false);
         }
 
-
-        nErr = m_Esatto.getWiFiConfig(nWiFiMode, sSSID, sPWD);
+        nErr = m_Esatto.getWiFiConfig(nWiFiMode, sSSID_AP, sPWD_AP, sSSID_STA, sPWD_STA);
         if(!nErr) {
-            dx->setText("sSSID", sSSID.c_str());
-            dx->setText("sPWD", sPWD.c_str());
-            dx->setEnabled("pushButton_2", true);
+            dx->setText("sSSID", sSSID_AP.c_str());
+            dx->setText("sPWD", sPWD_AP.c_str());
+            dx->setText("StaSSID", sSSID_STA.c_str());
+            dx->setText("StaPWD", sPWD_STA.c_str());
         }
         else {
             dx->setText("sSSID", "not available");
             dx->setEnabled("sPWD", false);
+            dx->setEnabled("StaSSID", false);
+            dx->setEnabled("StaPWD", false);
             dx->setEnabled("pushButton_2", false);
         }
+
+        nErr = m_Esatto.isWifiEnabled(bEnable);
+        if(bEnable) {
+            dx->setChecked("checkBox",1);
+            dx->setEnabled("pushButton_2", true);
+        }
+        else {
+            dx->setChecked("checkBox",0);
+            dx->setEnabled("sPWD", false);
+            dx->setEnabled("StaSSID", false);
+            dx->setEnabled("StaPWD", false);
+            dx->setEnabled("MACAddress", false);
+            dx->setEnabled("IPAddress", false);
+            dx->setEnabled("SubnetMask", false);
+            dx->setEnabled("GatewayIP", false);
+            dx->setEnabled("pushButton_2", true);
+        }
+		nErr = m_Esatto.getLeds(sLedState);
+		if(sLedState == "on")
+			nLedStateIndex = 0;
+		else if(sLedState == "low")
+			nLedStateIndex = 1;
+		else if(sLedState == "middle")
+			nLedStateIndex = 2;
+		else if(sLedState == "off")
+			nLedStateIndex = 3;
+		dx->setCurrentIndex("comboBox_2", nLedStateIndex);
     }
     else {
         // disable all controls
@@ -312,12 +353,28 @@ int	X2Focuser::execModalSettingsDialog(void)
         dx->setEnabled("decCurrent", false);
         dx->setEnabled("holdCurrent", false);
         dx->setEnabled("backlash", false);
-        dx->setEnabled("sSSID", false);
+		dx->setEnabled("comboBox", false);
+
+		dx->setEnabled("checkBox", false);
+
+		dx->setEnabled("sSSID", false);
         dx->setEnabled("sPWD", false);
+        dx->setEnabled("StaSSID", false);
+        dx->setEnabled("StaPWD", false);
+        dx->setText("MACAddress", "");
+        dx->setEnabled("MACAddress", false);
+        dx->setText("IPAddress", "");
+        dx->setEnabled("IPAddress", false);
+        dx->setText("SubnetMask", "");
+        dx->setEnabled("SubnetMask", false);
+        dx->setText("GatewayIP", "");
+        dx->setEnabled("GatewayIP", false);
         dx->setEnabled("pushButton_2", false);
         dx->setEnabled("maxPos", false);
         dx->setEnabled("pushButton_3", false);
         dx->setText("curPosLabel","");
+		dx->setEnabled("comboBox_2", false);
+		dx->setEnabled("pushButton_4", false);
     }
 
     //Display the user interface
@@ -358,7 +415,7 @@ void X2Focuser::uiEvent(X2GUIExchangeInterface* uiex, const char* pszEvent)
 
     if(!mUiEnabled)
         return;
-    
+
     if (!strcmp(pszEvent, "on_timer")) {
         nErr = m_Esatto.getPosition(nTmpVal);
         if(!nErr) {
@@ -381,16 +438,18 @@ void X2Focuser::uiEvent(X2GUIExchangeInterface* uiex, const char* pszEvent)
             uiex->setText("curPosLabel",szBuffer);
         }
     } else if (!strcmp(pszEvent, "on_pushButton_2_clicked")) {
-        std::string sSSID;
-        std::string sPWD;
+        std::string sSSID_AP;
+        std::string sPWD_AP;
+        std::string sSSID_STA;
+        std::string sPWD_STA;
         int nWifiMode;
         char dummy[256];
         uiex->text("sSSID", dummy, 256);
-        sSSID.assign(dummy);
+        sSSID_AP.assign(dummy);
         uiex->text("sPWD", dummy, 256);
-        sPWD.assign(dummy);
+        sPWD_AP.assign(dummy);
         nWifiMode = uiex->currentIndex("comboBox");
-        nErr = m_Esatto.setWiFiConfig(nWifiMode, sSSID, sPWD);
+        nErr = m_Esatto.setWiFiConfig(nWifiMode, sSSID_AP, sPWD_AP, sSSID_STA, sPWD_STA);
         if(nErr){
             snprintf(szBuffer, LOG_BUFFER_SIZE, "Error setting new WiFi parameters : Error %d", nErr);
             uiex->messageBox("Set WiFi Configuration", szBuffer);
@@ -407,7 +466,10 @@ void X2Focuser::uiEvent(X2GUIExchangeInterface* uiex, const char* pszEvent)
             return;
         }
     }
-
+	else if (!strcmp(pszEvent, "on_comboBox_2_currentIndexChanged")) {
+		uiex->propertyString("comboBox_2", "currentText", szBuffer, LOG_BUFFER_SIZE);
+		m_Esatto.setLeds(std::string(szBuffer));
+	}
 }
 
 #pragma mark - FocuserGotoInterface2
@@ -425,7 +487,7 @@ int	X2Focuser::focPosition(int& nPosition)
     return nErr;
 }
 
-int	X2Focuser::focMinimumLimit(int& nMinLimit) 		
+int	X2Focuser::focMinimumLimit(int& nMinLimit)
 {
 	int nMax;
 
@@ -449,7 +511,7 @@ int	X2Focuser::focMaximumLimit(int& nMaxLimit)
 	return SB_OK;
 }
 
-int	X2Focuser::focAbort()								
+int	X2Focuser::focAbort()
 {   int nErr;
 
     if(!m_bLinked)
@@ -460,7 +522,7 @@ int	X2Focuser::focAbort()
     return nErr;
 }
 
-int	X2Focuser::startFocGoto(const int& nRelativeOffset)	
+int	X2Focuser::startFocGoto(const int& nRelativeOffset)
 {
     if(!m_bLinked)
         return NOT_CONNECTED;
@@ -480,7 +542,7 @@ int	X2Focuser::isCompleteFocGoto(bool& bComplete) const
     X2Focuser* pMe = (X2Focuser*)this;
     X2MutexLocker ml(pMe->GetMutex());
 	nErr = pMe->m_Esatto.isGoToComplete(bComplete);
-    
+
     return nErr;
 }
 
@@ -495,8 +557,8 @@ int	X2Focuser::endFocGoto(void)
     return nErr;
 }
 
-int X2Focuser::amountCountFocGoto(void) const					
-{ 
+int X2Focuser::amountCountFocGoto(void) const
+{
 	return 9;
 }
 
@@ -590,3 +652,60 @@ void X2Focuser::portNameOnToCharPtr(char* pszPort, const int& nMaxSize) const
 
 
 
+int X2Focuser::deviceIdentifier(BasicStringInterface &sIdentifier)
+{
+	sIdentifier = "ESATTO_ARCO";
+	return SB_OK;
+}
+
+int X2Focuser::isConnectionPossible(const int &nPeerArraySize, MultiConnectionDeviceInterface **ppPeerArray, bool &bConnectionPossible)
+{
+	for (int nIndex = 0; nIndex < nPeerArraySize; ++nIndex)
+	{
+		X2Rotator *pFocuserPeer = dynamic_cast<X2Rotator*>(ppPeerArray[nIndex]);
+		if (pFocuserPeer == NULL)
+		{
+			bConnectionPossible = false;
+			return ERR_POINTER;
+		}
+	}
+
+	bConnectionPossible = true;
+	return SB_OK;
+
+}
+
+int X2Focuser::useResource(MultiConnectionDeviceInterface *pPeer)
+{
+	X2Rotator *pFocuserPeer = dynamic_cast<X2Rotator*>(pPeer);
+	if (pFocuserPeer == NULL) {
+		return ERR_POINTER; // Peer must be a power control  pointer
+	}
+
+	// Use the resources held by the specified peer
+	m_pIOMutex = pFocuserPeer->m_pSavedMutex;
+	m_Esatto.SetSerxPointer(pFocuserPeer->m_pSavedSerX);
+	return SB_OK;
+
+}
+
+int X2Focuser::swapResource(MultiConnectionDeviceInterface *pPeer)
+{
+
+	X2Rotator *pFocuserPeer = dynamic_cast<X2Rotator*>(pPeer);
+	if (pFocuserPeer == NULL) {
+		return ERR_POINTER; //  Peer must be a power control  pointer
+	}
+
+	// Swap this driver instance's resources for the ones held by pPeer
+	MutexInterface* pTempMutex = m_pSavedMutex;
+	SerXInterface*  pTempSerX = m_pSavedSerX;
+
+	m_pSavedMutex = pFocuserPeer->m_pSavedMutex;
+	m_pSavedSerX = pFocuserPeer->m_pSavedSerX;
+
+	pFocuserPeer->m_pSavedMutex = pTempMutex;
+	pFocuserPeer->m_pSavedSerX = pTempSerX;
+
+	return SB_OK;
+}
